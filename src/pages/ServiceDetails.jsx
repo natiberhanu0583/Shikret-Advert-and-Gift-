@@ -1,0 +1,299 @@
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { ArrowLeft, Heart, MessageCircle, Send } from 'lucide-react';
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
+import LoginModal from '../components/LoginModal';
+import InstantOrderModal from '../components/InstantOrderModal';
+
+const ServiceDetails = () => {
+  const { categoryId } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const decodedCategory = decodeURIComponent(categoryId);
+  
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [lightboxImage, setLightboxImage] = useState(null);
+  
+  // Registration / Auth State
+  const [showLogin, setShowLogin] = useState(false);
+  const [pendingAction, setPendingAction] = useState(null);
+
+  // Instant Order State
+  const [instantOrderItem, setInstantOrderItem] = useState(null);
+
+  // Local state for comment inputs { postId: 'comment text' }
+  const [commentInputs, setCommentInputs] = useState({});
+  const [commentStatus, setCommentStatus] = useState({}); // 'success', 'error', 'sending'
+
+  const queryParams = new URLSearchParams(location.search);
+  const currentTab = queryParams.get('tab');
+
+  const fetchServices = async () => {
+    try {
+      const res = await fetch('http://localhost:3001/api/posts');
+      if (res.ok) {
+        const allPosts = await res.json();
+        setPosts(allPosts.filter(p => p.category === decodedCategory));
+      }
+    } catch (err) {
+      console.error('Error fetching services:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchServices();
+  }, [decodedCategory]);
+
+  const requireAuth = (actionCallback) => {
+    const userStr = localStorage.getItem('shikret_user');
+    if (userStr) {
+      actionCallback(JSON.parse(userStr));
+    } else {
+      setPendingAction(() => actionCallback);
+      setShowLogin(true);
+    }
+  };
+
+  const onLoginSuccess = (userProfile) => {
+    if (pendingAction) {
+      pendingAction(userProfile);
+      setPendingAction(null);
+    }
+  };
+
+  const handleLike = (postId) => {
+    requireAuth(async (user) => {
+      try {
+        setPosts(posts.map(p => p.id === postId ? { ...p, likes: (p.likes || 0) + 1 } : p));
+        await fetch(`http://localhost:3001/api/posts/${postId}/like`, { 
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user })
+        });
+      } catch (e) {
+        console.error(e);
+        fetchServices();
+      }
+    });
+  };
+
+  const handleCommentSubmit = (postId, e) => {
+    e.preventDefault();
+    const text = commentInputs[postId];
+    if (!text || !text.trim()) return;
+
+    requireAuth(async (user) => {
+      try {
+        setCommentStatus({ ...commentStatus, [postId]: 'sending' });
+
+        const res = await fetch(`http://localhost:3001/api/posts/${postId}/comment`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text, user })
+        });
+        
+        if (res.ok) {
+           setCommentInputs({ ...commentInputs, [postId]: '' });
+           setCommentStatus({ ...commentStatus, [postId]: 'success' });
+           setTimeout(() => {
+              setCommentStatus(prev => ({ ...prev, [postId]: null }));
+           }, 4000);
+        } else {
+           setCommentStatus({ ...commentStatus, [postId]: 'error' });
+        }
+      } catch (err) {
+        console.error(err);
+        setCommentStatus({ ...commentStatus, [postId]: 'error' });
+      }
+    });
+  };
+
+  const activeSubCategory = currentTab && posts.some(p => p.subCategory === currentTab)
+    ? currentTab 
+    : (posts.length > 0 ? [...new Set(posts.map(p => p.subCategory).filter(Boolean))][0] : null);
+
+  const displayedPosts = activeSubCategory 
+    ? posts.filter(p => p.subCategory === activeSubCategory)
+    : posts;
+
+  const subCategories = [...new Set(posts.map(p => p.subCategory).filter(Boolean))];
+
+  return (
+    <div style={{ position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      
+      <LoginModal 
+        isOpen={showLogin} 
+        onClose={() => { setShowLogin(false); setPendingAction(null); }} 
+        onSuccess={onLoginSuccess} 
+      />
+
+      <InstantOrderModal 
+        isOpen={!!instantOrderItem} 
+        request={instantOrderItem}
+        user={localStorage.getItem('shikret_user') ? JSON.parse(localStorage.getItem('shikret_user')) : null}
+        onClose={() => setInstantOrderItem(null)} 
+      />
+
+      {/* Lightbox Overlay */}
+      {lightboxImage && (
+        <div 
+          onClick={() => setLightboxImage(null)}
+          style={{ 
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, 
+            background: 'rgba(0,0,0,0.92)', zIndex: 99999, 
+            display: 'flex', alignItems: 'center', justifyContent: 'center', 
+            cursor: 'zoom-out', padding: '1rem', animation: 'fadeIn 0.2s ease-out'
+          }} 
+        >
+           <img src={lightboxImage} alt="Fullscreen View" style={{ maxWidth: '95vw', maxHeight: '95vh', objectFit: 'contain', borderRadius: '8px', boxShadow: '0 0 30px rgba(0,0,0,0.8)' }} />
+           <div style={{ position: 'absolute', top: '2rem', right: '3rem', color: 'white', background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.2)', padding: '0.5rem 1rem', borderRadius: '30px', fontSize: '0.9rem', pointerEvents: 'none' }}>
+             Click anywhere to close
+           </div>
+        </div>
+      )}
+
+      <Navbar />
+      
+      <main style={{ flex: 1, paddingTop: '8rem', paddingBottom: '4rem', background: 'var(--bg)' }} className="container">
+        <button onClick={() => navigate('/')} className="btn" style={{ background: 'transparent', color: 'var(--text-muted)', padding: 0, marginBottom: '2rem' }}>
+          <ArrowLeft size={20} /> Back to Home
+        </button>
+
+        <h1 className="heading-gradient" style={{ fontSize: '3rem', marginBottom: '1rem' }}>{decodedCategory}</h1>
+        <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem', marginBottom: '3rem', maxWidth: '600px' }}>
+          Explore our featured items and services. Leave a like or a private message to the office if you have specific questions!
+        </p>
+
+        {loading ? (
+           <p style={{ color: 'var(--text-muted)' }}>Loading services...</p>
+        ) : (
+          <>
+            {subCategories.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginBottom: '3rem' }}>
+                {subCategories.map((sub, idx) => (
+                  <button key={idx} onClick={() => navigate(`/services/${encodeURIComponent(decodedCategory)}?tab=${encodeURIComponent(sub)}`)}
+                    className={activeSubCategory === sub ? 'btn btn-primary' : 'btn btn-secondary'}
+                    style={{ borderRadius: '8px', padding: '0.8rem 1.5rem' }}>
+                    {sub}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {displayedPosts.length === 0 ? (
+              <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center' }}>
+                 <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem' }}>No specific details added for this service yet.</p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
+                {displayedPosts.map(post => (
+                  <div key={post.id} className="glass-panel animate-fade-in" style={{ padding: '2rem', display: 'flex', gap: '3rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                     
+                     {/* LEFT SIDE: Image */}
+                     <div style={{ flex: '1 1 400px', minWidth: '300px' }}>
+                       {post.image ? (
+                         <div 
+                           style={{ width: '100%', background: 'rgba(0,0,0,0.3)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'zoom-in', padding: '1rem', border: '1px solid var(--glass-border)' }}
+                           onClick={() => setLightboxImage(post.image)}
+                         >
+                           <img src={post.image} alt={post.title} style={{ width: '100%', maxHeight: '400px', objectFit: 'contain' }} />
+                         </div>
+                       ) : (
+                         <div style={{ width: '100%', height: '300px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
+                           No Image Provided
+                         </div>
+                       )}
+                     </div>
+
+                     {/* RIGHT SIDE: Info, Reactions, and Comments */}
+                     <div style={{ flex: '1 1 400px', display: 'flex', flexDirection: 'column' }}>
+                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', gap: '1rem', flexWrap: 'wrap' }}>
+                          <h3 style={{ fontSize: '2rem', color: 'var(--text)', margin: 0 }}>{post.title}</h3>
+                          {post.price && (
+                             <span style={{ fontSize: '1.3rem', fontWeight: 'bold', color: '#4ade80', background: 'rgba(74, 222, 128, 0.1)', padding: '0.4rem 1rem', borderRadius: '30px', border: '1px solid rgba(74, 222, 128, 0.2)' }}>
+                                {post.price}
+                             </span>
+                          )}
+                       </div>
+                       <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', lineHeight: 1.6, marginBottom: '2rem', whiteSpace: 'pre-wrap' }}>{post.content}</p>
+                       
+                       <div style={{ display: 'flex', alignItems: 'center', gap: '2rem', paddingBottom: '1.5rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--glass-border)', flexWrap: 'wrap' }}>
+                          <button onClick={() => handleLike(post.id)} className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.2rem', background: 'rgba(236,72,153,0.1)', color: 'var(--secondary)', border: '1px solid rgba(236,72,153,0.3)' }}>
+                            <Heart size={20} fill={(post.likes > 0) ? 'var(--secondary)' : 'none'} />
+                            <span>{post.likes || 0} Likes</span>
+                          </button>
+                          
+                          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                             <button onClick={() => {
+                                requireAuth(() => setInstantOrderItem({ item: post, type: 'voice' }));
+                             }} className="btn btn-primary" style={{ padding: '0.6rem 1.5rem', background: 'linear-gradient(45deg, #06b6d4, #3b82f6)', boxShadow: '0 4px 15px rgba(6, 182, 212, 0.4)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                               🎤 Order via Voice Message
+                             </button>
+                             
+                             <button onClick={() => {
+                                requireAuth(() => setInstantOrderItem({ item: post, type: 'text' }));
+                             }} className="btn btn-secondary" style={{ padding: '0.6rem 1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', border: '1px solid var(--glass-border)' }}>
+                               📝 Order via Text Details
+                             </button>
+                          </div>
+                       </div>
+
+                       {/* Private Messaging / Comments */}
+                       <div style={{ marginTop: '0.5rem' }}>
+                          <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.1rem', marginBottom: '1rem', color: 'var(--text)' }}>
+                            <MessageCircle size={18} color="var(--primary)" /> 
+                            Private Feedback & Questions
+                          </h4>
+                          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+                            Have a specific question about this item? Drop a message here—it goes straight to our office privately.
+                          </p>
+
+                          {/* Status Messages */}
+                          {commentStatus[post.id] === 'success' && (
+                            <div style={{ background: 'rgba(0,255,0,0.1)', color: '#4ade80', padding: '0.8rem', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.95rem' }}>
+                              ✅ Your message has been safely sent to our office!
+                            </div>
+                          )}
+
+                          {commentStatus[post.id] === 'error' && (
+                            <div style={{ background: 'rgba(255,0,0,0.1)', color: '#f87171', padding: '0.8rem', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.95rem' }}>
+                              ❌ Failed to send message. Please try again.
+                            </div>
+                          )}
+
+                          {/* Write Comment Box */}
+                          <form onSubmit={(e) => handleCommentSubmit(post.id, e)} style={{ display: 'flex', gap: '0.8rem' }}>
+                             <input 
+                               type="text" 
+                               className="form-control" 
+                               placeholder="Type your question directly to the admin..." 
+                               value={commentInputs[post.id] || ''}
+                               onChange={(e) => setCommentInputs({...commentInputs, [post.id]: e.target.value})}
+                               style={{ flex: 1, marginBottom: 0 }}
+                           
+                             />
+                             <button type="submit" disabled={commentStatus[post.id] === 'sending'} className="btn btn-primary" style={{ padding: '0 1.2rem', opacity: commentStatus[post.id] === 'sending' ? 0.7 : 1 }}>
+                                {commentStatus[post.id] === 'sending' ? '...' : <Send size={18} />}
+                             </button>
+                          </form>
+                       </div>
+
+                     </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </main>
+
+      <Footer />
+    </div>
+  );
+};
+
+export default ServiceDetails;
