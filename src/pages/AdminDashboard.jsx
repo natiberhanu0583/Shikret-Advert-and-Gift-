@@ -268,15 +268,17 @@ const AdminDashboard = ({ onLogout }) => {
   const TabButton = ({ id, icon: Icon, label }) => (
     <button
       onClick={() => setActiveTab(id)}
+      className={`tab-btn ${activeTab === id ? 'active' : ''}`}
       style={{
-        display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '1rem', width: '100%',
+        display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '1rem', 
         background: activeTab === id ? 'var(--primary)' : 'transparent',
         color: activeTab === id ? '#fff' : 'var(--text-muted)',
         border: 'none', borderRadius: '8px', cursor: 'pointer',
-        textAlign: 'left', fontSize: '1.1rem', transition: 'var(--transition)'
+        fontSize: '1.1rem', transition: 'var(--transition)',
+        whiteSpace: 'nowrap'
       }}
     >
-      <Icon size={20} /> {label}
+      <Icon size={20} /> <span className="tab-label">{label}</span>
     </button>
   );
 
@@ -291,24 +293,25 @@ const AdminDashboard = ({ onLogout }) => {
   });
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)' }}>
-      {/* Sidebar */}
-      <aside style={{ width: '250px', background: 'var(--bg-surface)', borderRight: '1px solid var(--glass-border)', padding: '2rem' }}>
-        <h2 className="heading-gradient" style={{ marginBottom: '3rem', fontSize: '1.8rem' }}>Admin Panel</h2>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+    <div className="admin-container" style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)' }}>
+      {/* Sidebar / Top Navigation */}
+      <aside className="admin-sidebar" style={{ background: 'var(--bg-surface)', borderRight: '1px solid var(--glass-border)', padding: '2rem' }}>
+        <h2 className="heading-gradient hidden-mobile" style={{ marginBottom: '3rem', fontSize: '1.8rem' }}>Admin Panel</h2>
+        <div className="admin-tabs" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           <TabButton id="orders" icon={Package} label="Orders" />
           <TabButton id="interactions" icon={MessageCircle} label="Likes & Comments" />
           <TabButton id="posts" icon={FileText} label="Services Manager" />
           <TabButton id="settings" icon={ConfigIcon} label="Web Interfaces" />
-          <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid var(--glass-border)' }}>
+          
+          <div className="admin-sidebar-footer" style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid var(--glass-border)' }}>
             <button onClick={onLogout} style={{ background: 'transparent', border: 'none', color: '#f87171', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', width: '100%', textAlign: 'left', padding: '0.5rem 0', fontSize: '1rem' }}>
-              <LogOut size={20} /> Sign Out Admin
+              <LogOut size={20} /> <span className="hidden-mobile">Sign Out Admin</span>
             </button>
-          </div>
-          <div style={{ marginTop: '0.5rem' }}>
-            <a href="/" style={{ color: 'var(--text-muted)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem' }}>
-               View Website
-            </a>
+            <div style={{ marginTop: '0.5rem' }}>
+              <a href="/" style={{ color: 'var(--text-muted)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem' }}>
+                 <span className="hidden-mobile">View Website</span>
+              </a>
+            </div>
           </div>
         </div>
       </aside>
@@ -501,7 +504,7 @@ const AdminDashboard = ({ onLogout }) => {
         {activeTab === 'posts' && (
           <div className="animate-fade-in">
             <h1 style={{ marginBottom: '2rem' }}>Manage Sub-Categories & Details</h1>
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1.2fr)', gap: '2rem', alignItems: 'flex-start' }}>
+            <div className="grid-cols-2" style={{ display: 'grid', gap: '2rem', alignItems: 'flex-start' }}>
 
               {/* Form */}
               <div className="glass-panel" style={{ padding: '2rem' }}>
