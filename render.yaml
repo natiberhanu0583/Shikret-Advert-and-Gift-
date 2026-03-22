@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: shikret-advert-api
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    disk:
+      name: database
+      mountPath: /opt/render/project/src/backend
+      sizeGB: 1
+    envVars:
+      - key: VITE_API_URL
+        value: "" # Leave empty in production so it queries the server itself
+      - key: VITE_ADMIN_PASSWORD
+        value: shikret007
