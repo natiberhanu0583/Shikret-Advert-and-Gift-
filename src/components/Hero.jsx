@@ -1,7 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, Sparkles, Printer, Megaphone, MonitorSmartphone, Gift } from 'lucide-react';
+import { ArrowRight, Sparkles, Printer, Megaphone, MonitorSmartphone, Gift, Star, Package } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { Link } from 'react-router-dom';
+
+// Icon map for known categories - new categories will get a default icon
+const ICON_MAP = {
+  'Printing Services': Printer,
+  'Advertising': Megaphone,
+  'Web & App Development': MonitorSmartphone,
+  'Gift Equipment Making': Gift,
+};
 
 const Hero = () => {
   const { t } = useLanguage();
@@ -9,6 +17,7 @@ const Hero = () => {
     heroTitle: 'Brand Identity',
     heroSubtitle: 'Shikret offers premium printing, cutting-edge advertising, state-of-the-art web development, and personalized gift making services designed to make your business shine.'
   });
+  const [dynamicCategories, setDynamicCategories] = useState([]);
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -22,22 +31,43 @@ const Hero = () => {
         console.error('Failed to fetch settings:', err);
       }
     };
-    fetchSettings();
-  }, []);
 
-  const categories = [
-    { id: 'Printing Services', icon: Printer, label: 'Printing Services' },
-    { id: 'Advertising', icon: Megaphone, label: 'Advertising' },
-    { id: 'Web & App Development', icon: MonitorSmartphone, label: 'Web & App Development' },
-    { id: 'Gift Equipment Making', icon: Gift, label: 'Gift Equipment Making' }
-  ];
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/posts`);
+        if (res.ok) {
+          const posts = await res.json();
+          // Get unique categories from actual posts + 4 static ones
+          const staticCats = ['Printing Services', 'Advertising', 'Web & App Development', 'Gift Equipment Making'];
+          const postCats = posts.map(p => p.category).filter(Boolean);
+          const allUnique = [...new Set([...staticCats, ...postCats])];
+          setDynamicCategories(allUnique.map(cat => ({
+            id: cat,
+            label: cat,
+            icon: ICON_MAP[cat] || Star  // fallback icon for custom categories
+          })));
+        }
+      } catch (err) {
+        // Fallback to static on error
+        setDynamicCategories([
+          { id: 'Printing Services', icon: Printer, label: 'Printing Services' },
+          { id: 'Advertising', icon: Megaphone, label: 'Advertising' },
+          { id: 'Web & App Development', icon: MonitorSmartphone, label: 'Web & App Development' },
+          { id: 'Gift Equipment Making', icon: Gift, label: 'Gift Equipment Making' },
+        ]);
+      }
+    };
+
+    fetchSettings();
+    fetchCategories();
+  }, []);
 
   return (
     <section id="home" style={{ paddingTop: '8rem', paddingBottom: '6rem', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', position: 'relative' }} className="container">
       
-      {/* Centered Modern Category Selector (The "Top Capabilities" buttons) */}
+      {/* Dynamic Category Capability Cards */}
       <div className="animate-fade-in capability-grid" style={{ width: '100%', maxWidth: '900px', marginBottom: '1.5rem' }}>
-        {categories.map((cat, idx) => (
+        {dynamicCategories.map((cat, idx) => (
           <Link 
             key={idx}
             to={`/services/${encodeURIComponent(cat.id)}`} 
@@ -53,17 +83,17 @@ const Hero = () => {
               border: '1px solid var(--glass-border)'
             }}
           >
-            <div style={{ width: '50px', height: '50px', borderRadius: '15px', background: 'rgba(6, 182, 212, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: '0.3s' }}>
+            <div style={{ width: '50px', height: '50px', borderRadius: '15px', background: 'rgba(6, 182, 212, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <cat.icon size={26} color="var(--primary)" />
             </div>
             <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text)' }}>
-              {t(cat.label)}
+              {t(cat.label) || cat.label}
             </span>
           </Link>
         ))}
       </div>
 
-      {/* Quick Call Link for Mobile/Desktop visibility */}
+      {/* Quick Call Link */}
       <div className="animate-fade-in" style={{ marginBottom: '3rem' }}>
         <p style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--primary)', letterSpacing: '0.05em' }}>
            Shikret Advert — <a href="tel:0940219376" style={{ color: 'inherit', textDecoration: 'none', borderBottom: '1px solid currentColor' }}>Call us: 0940219376</a>
@@ -94,7 +124,7 @@ const Hero = () => {
         </div>
       </div>
 
-      {/* Modern Gradient Background Decor */}
+      {/* Gradient Decor */}
       <div style={{ position: 'absolute', top: '20%', left: '50%', transform: 'translateX(-50%)', width: '80vw', height: '60vh', background: 'radial-gradient(circle at 50% 50%, rgba(6, 182, 212, 0.12) 0%, transparent 60%)', zIndex: -1, pointerEvents: 'none' }}></div>
       
     </section>

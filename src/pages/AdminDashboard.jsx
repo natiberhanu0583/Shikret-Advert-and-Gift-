@@ -16,6 +16,10 @@ const AdminDashboard = ({ onLogout }) => {
   // Post Form State
   const [editingPostId, setEditingPostId] = useState(null);
   const [newPost, setNewPost] = useState({ title: '', content: '', category: 'Printing Services', subCategory: '', image: '', price: '' });
+  
+  const [customMainCat, setCustomMainMainCat] = useState('');
+  const [useCustomMainCat, setUseCustomMainCat] = useState(false);
+  
   const [customSubCat, setCustomSubCat] = useState('');
   const [useCustomSubCat, setUseCustomSubCat] = useState(false);
 
@@ -94,70 +98,50 @@ const AdminDashboard = ({ onLogout }) => {
     setUploading(true);
 
     // Determine the final subcategory to save
-    const finalSubCategory = useCustomSubCat ? customSubCat : newPost.subCategory;
-    let finalImageUrl = newPost.image;
+      const finalMainCategory = useCustomMainCat ? customMainCat : newPost.category;
+      const finalSubCategory = useCustomSubCat ? customSubCat : newPost.subCategory;
+      let finalImageUrl = newPost.image;
 
-    try {
-      // Handle file upload if a file was selected
-      if (uploadFile) {
-        const formData = new FormData();
-        formData.append('image', uploadFile);
-
-        const uploadRes = await fetch(`${import.meta.env.VITE_API_URL}/api/upload`, {
-          method: 'POST',
-          body: formData
-        });
-
-        if (uploadRes.ok) {
-          const uploadData = await uploadRes.json();
-          finalImageUrl = uploadData.url;
-        } else {
-          alert("Image upload failed. Submitting with original image URL if any.");
+      try {
+        if (uploadFile) {
+          const formData = new FormData();
+          formData.append('image', uploadFile);
+          const uploadRes = await fetch(`${import.meta.env.VITE_API_URL}/api/upload`, { method: 'POST', body: formData });
+          if (uploadRes.ok) {
+            const uploadData = await uploadRes.json();
+            finalImageUrl = uploadData.url;
+          }
         }
-      }
 
-      const payload = {
-        ...newPost,
-        subCategory: finalSubCategory,
-        image: finalImageUrl
-      };
+        const payload = {
+          ...newPost,
+          category: finalMainCategory,
+          subCategory: finalSubCategory,
+          image: finalImageUrl
+        };
 
-      let response;
-      if (editingPostId) {
-        response = await fetch(`${import.meta.env.VITE_API_URL}/api/posts/${editingPostId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-      } else {
-        response = await fetch(`${import.meta.env.VITE_API_URL}/api/posts`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-      }
+        let response;
+        if (editingPostId) {
+          response = await fetch(`${import.meta.env.VITE_API_URL}/api/posts/${editingPostId}`, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+          });
+        } else {
+          response = await fetch(`${import.meta.env.VITE_API_URL}/api/posts`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+          });
+        }
 
-      if (response.ok) {
-        alert(editingPostId ? 'Item updated successfully!' : 'New item published successfully!');
-        // Reset Form
-        setEditingPostId(null);
-        setNewPost({ title: '', content: '', category: 'Printing Services', subCategory: '', image: '', price: '' });
-        setCustomSubCat('');
-        setUseCustomSubCat(false);
-        setUploadFile(null);
-        if (fileInputRef.current) fileInputRef.current.value = "";
-        fetchPosts();
-      } else {
-        const errorData = await response.json().catch(() => ({}));
-        alert(`Failed to save item: ${errorData.error || 'Server error'}`);
-      }
-    } catch (e) {
-      console.error(e);
-      alert('Network error: Could not connect to the backend server.');
-    } finally {
-      setUploading(false);
-    }
-  };
+        if (response.ok) {
+          alert('Saved successfully!');
+          setEditingPostId(null);
+          setNewPost({ title: '', content: '', category: 'Printing Services', subCategory: '', image: '', price: '' });
+          setCustomMainMainCat(''); setUseCustomMainCat(false);
+          setCustomSubCat(''); setUseCustomSubCat(false);
+          setUploadFile(null);
+          fetchPosts();
+        }
+      } catch (e) { console.error(e); } finally { setUploading(false); }
+    };
 
   const handleEditClick = (post) => {
     window.scrollTo(0, 0);
@@ -229,38 +213,34 @@ const AdminDashboard = ({ onLogout }) => {
     }
   };
 
-  // Helper for rendering the SubCategory Dropdown logic
-  const existingSubCats = [...new Set(posts.filter(p => p.category === newPost.category && p.subCategory).map(p => p.subCategory))];
+  // --- Dynamic Category Logic ---
+  const staticMainCats = ['Printing Services', 'Advertising', 'Web & App Development', 'Gift Equipment Making'];
+  const allMainCats = [...new Set([...staticMainCats, ...posts.map(p => p.category)])];
+  const currentMainCat = useCustomMainCat ? customMainCat : newPost.category;
+  const existingSubCats = [...new Set(posts.filter(p => p.category === currentMainCat && p.subCategory).map(p => p.subCategory))];
 
-  useEffect(() => {
-    if (!editingPostId) {
-      if (existingSubCats.length > 0) {
-        setNewPost(prev => ({ ...prev, subCategory: existingSubCats[0] }));
-        setUseCustomSubCat(false);
-      } else {
-        setNewPost(prev => ({ ...prev, subCategory: '' }));
-        setUseCustomSubCat(true);
-      }
+  const handleMainCategorySelect = (e) => {
+    const val = e.target.value;
+    if (val === 'NEW_MAIN_OPTION') {
+      setUseCustomMainCat(true);
+      setCustomMainMainCat('');
+      setUseCustomSubCat(true);
+      setCustomSubCat('');
     } else {
-      if (!existingSubCats.includes(newPost.subCategory)) {
-        setUseCustomSubCat(true);
-        setCustomSubCat(newPost.subCategory);
-      }
+      setUseCustomMainCat(false);
+      setNewPost(prev => ({ ...prev, category: val, subCategory: '' }));
+      setUseCustomSubCat(false);
     }
-  }, [newPost.category, posts.length]);
-
-  const handleCategoryChange = (e) => {
-    setNewPost({ ...newPost, category: e.target.value });
   };
 
   const handleSubCategorySelect = (e) => {
     const val = e.target.value;
-    if (val === 'NEW_SUBCAT_OPTION') {
+    if (val === 'NEW_SUB_OPTION') {
       setUseCustomSubCat(true);
       setCustomSubCat('');
     } else {
       setUseCustomSubCat(false);
-      setNewPost({ ...newPost, subCategory: val });
+      setNewPost(prev => ({ ...prev, subCategory: val }));
     }
   };
 
@@ -516,32 +496,31 @@ const AdminDashboard = ({ onLogout }) => {
                 </h3>
                 <form onSubmit={handlePostSubmit}>
                   <div className="form-group">
-                    <label className="form-label">Main Category</label>
-                    <select className="form-control" value={newPost.category} onChange={handleCategoryChange} style={{ WebkitAppearance: 'none', appearance: 'none' }} required>
-                      <option value="Printing Services">Printing Services</option>
-                      <option value="Advertising">Advertising</option>
-                      <option value="Web & App Development">Web & App Development</option>
-                      <option value="Gift Equipment Making">Gift Equipment Making</option>
-                    </select>
-                  </div>
-
-                  <div className="form-group">
-                    <label className="form-label">Sub-Category Button</label>
-
-                    {/* Conditional Dropdown vs Input */}
-                    {existingSubCats.length > 0 && !useCustomSubCat ? (
-                      <select className="form-control" value={newPost.subCategory} onChange={handleSubCategorySelect} style={{ WebkitAppearance: 'none', appearance: 'none' }} required>
-                        {existingSubCats.map(sub => (
-                          <option key={sub} value={sub}>{sub}</option>
-                        ))}
-                        <option value="NEW_SUBCAT_OPTION" style={{ fontWeight: 'bold', color: 'var(--primary)' }}>✨ Create New Sub-Category Button...</option>
+                    <label className="form-label">Main Business Capability (Category)</label>
+                    {!useCustomMainCat ? (
+                      <select className="form-control" value={newPost.category} onChange={handleMainCategorySelect} required>
+                         {allMainCats.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                         <option value="NEW_MAIN_OPTION" style={{ color: 'var(--primary)', fontWeight: 'bold' }}>✨ Add NEW Main Category...</option>
                       </select>
                     ) : (
                       <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <input type="text" className="form-control" value={customSubCat} onChange={e => setCustomSubCat(e.target.value)} placeholder="Type new button name (e.g. Neon Signs)" required={useCustomSubCat} style={{ flex: 1 }} />
-                        {existingSubCats.length > 0 && (
-                          <button type="button" className="btn btn-secondary" onClick={() => setUseCustomSubCat(false)} style={{ padding: '0.5rem', fontSize: '0.9rem' }}>Cancel</button>
-                        )}
+                         <input type="text" className="form-control" value={customMainCat} onChange={e => setCustomMainMainCat(e.target.value)} placeholder="Type new Main Category..." required style={{ flex: 1 }} />
+                         <button type="button" onClick={() => setUseCustomMainCat(false)} className="btn btn-secondary">Back</button>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Sub-Category Navigation Button</label>
+                    {!useCustomSubCat ? (
+                      <select className="form-control" value={newPost.subCategory} onChange={handleSubCategorySelect} required>
+                        {existingSubCats.map(sub => <option key={sub} value={sub}>{sub}</option>)}
+                        <option value="NEW_SUB_OPTION" style={{ color: 'var(--primary)', fontWeight: 'bold' }}>✨ Add NEW Button Option...</option>
+                      </select>
+                    ) : (
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <input type="text" className="form-control" value={customSubCat} onChange={e => setCustomSubCat(e.target.value)} placeholder="Type new Button Name..." required style={{ flex: 1 }} />
+                        {existingSubCats.length > 0 && <button type="button" onClick={() => setUseCustomSubCat(false)} className="btn btn-secondary">Back</button>}
                       </div>
                     )}
                   </div>
