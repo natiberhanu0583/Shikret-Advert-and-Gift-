@@ -35,7 +35,7 @@ const Hero = () => {
     <section id="home" style={{ paddingTop: '8rem', paddingBottom: '6rem', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', position: 'relative' }} className="container">
       
       {/* Centered Modern Category Selector (The "Top Capabilities" buttons) */}
-      <div className="animate-fade-in capability-grid" style={{ width: '100%', maxWidth: '900px', marginBottom: '4rem' }}>
+      <div className="animate-fade-in capability-grid" style={{ width: '100%', maxWidth: '900px', marginBottom: '1.5rem' }}>
         {categories.map((cat, idx) => (
           <a 
             key={idx}
@@ -49,8 +49,7 @@ const Hero = () => {
               padding: '1.5rem 1rem', 
               textDecoration: 'none', 
               transition: '0.3s',
-              border: '1px solid var(--glass-border)',
-              minWidth: '150px'
+              border: '1px solid var(--glass-border)'
             }}
           >
             <div style={{ width: '50px', height: '50px', borderRadius: '15px', background: 'rgba(6, 182, 212, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: '0.3s' }}>
@@ -61,6 +60,13 @@ const Hero = () => {
             </span>
           </a>
         ))}
+      </div>
+
+      {/* Quick Call Link for Mobile/Desktop visibility */}
+      <div className="animate-fade-in" style={{ marginBottom: '3rem' }}>
+        <p style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--primary)', letterSpacing: '0.05em' }}>
+           Shikret Advert — <a href="tel:0940219376" style={{ color: 'inherit', textDecoration: 'none', borderBottom: '1px solid currentColor' }}>Call us: 0940219376</a>
+        </p>
       </div>
 
       <div className="animate-fade-in" style={{ maxWidth: '850px' }}>

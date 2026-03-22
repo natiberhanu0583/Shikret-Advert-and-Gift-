@@ -195,15 +195,10 @@ h1, h2, h3, h4, h5, h6 {
 
 @media (max-width: 900px) {
   .capability-grid {
-    display: flex;
-    overflow-x: auto;
-    padding-bottom: 1rem;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    mask-image: linear-gradient(to right, black 85%, transparent 100%);
-  }
-  .capability-grid::-webkit-scrollbar {
-    display: none;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    padding: 0.5rem;
   }
 }
 
