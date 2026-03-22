@@ -75,7 +75,12 @@ const LoginModal = ({ isOpen, onClose, onSuccess }) => {
                 <label className="form-label">
                   {method === 'phone' && "Enter Phone Number"}
                   {method === 'email' && "Enter Gmail / Email Address"}
-                  {method === 'telegram' && "Enter Telegram Username (e.g. @john)"}
+                  {method === 'telegram' && (
+                    <span style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                      Enter Telegram Chat ID
+                      <a href="https://t.me/userinfobot" target="_blank" rel="noreferrer" style={{ color: '#38bdf8', textDecoration: 'none', fontSize: '0.8rem' }}>Get ID from @userinfobot</a>
+                    </span>
+                  )}
                   {method === 'facebook' && "Enter Facebook Name or Link"}
                 </label>
                 <input 
@@ -86,7 +91,7 @@ const LoginModal = ({ isOpen, onClose, onSuccess }) => {
                   placeholder={
                      method === 'phone' ? '+1 (555) 000-0000' :
                      method === 'email' ? 'john@gmail.com' :
-                     method === 'telegram' ? '@username' :
+                     method === 'telegram' ? 'e.g. 512345678' :
                      'facebook.com/username'
                   } 
                   required 

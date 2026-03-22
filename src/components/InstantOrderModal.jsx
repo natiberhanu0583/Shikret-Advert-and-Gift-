@@ -9,6 +9,7 @@ const InstantOrderModal = ({ isOpen, request, user, onClose }) => {
 
   const [details, setDetails] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [submittedOrderId, setSubmittedOrderId] = useState(null);
   
   // Audio state
   const [isRecording, setIsRecording] = useState(false);
@@ -159,6 +160,8 @@ const InstantOrderModal = ({ isOpen, request, user, onClose }) => {
       });
 
       if (orderRes.ok) {
+        const resData = await orderRes.json();
+        setSubmittedOrderId(resData.id);
         setStatus('success');
       } else {
         setStatus('error');
@@ -177,8 +180,21 @@ const InstantOrderModal = ({ isOpen, request, user, onClose }) => {
         <div className="glass-panel" style={{ width: '100%', maxWidth: '500px', padding: '3rem 2rem', textAlign: 'center' }}>
           <CheckCircle size={60} color="#4ade80" style={{ margin: '0 auto 1.5rem auto' }} />
           <h2 style={{ marginBottom: '1rem' }}>Order Sent Successfully!</h2>
-          <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>Our team has instantly received your secure requirements. We will review it and contact you at <strong>{phoneNumber}</strong> shortly.</p>
-          <button onClick={onClose} className="btn btn-primary" style={{ padding: '0.8rem 2rem' }}>Close</button>
+          <p style={{ color: 'var(--text-muted)', marginBottom: '2.5rem' }}>Our team has instantly received your requirements. You will be contacted shortly at <strong>{phoneNumber}</strong>.</p>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+            <a 
+              href={`https://t.me/${import.meta.env.VITE_TELEGRAM_BOT_NAME}?start=order_${submittedOrderId}`} 
+              target="_blank" 
+              rel="noreferrer"
+              className="btn btn-secondary" 
+              style={{ background: 'rgba(56, 189, 248, 0.1)', color: '#38bdf8', border: '1px solid #38bdf8', width: '100%', padding: '1rem' }}
+            >
+              🚀 Get Real-time Status via Telegram
+            </a>
+            
+            <button onClick={onClose} className="btn" style={{ background: 'transparent', color: 'var(--text-muted)', fontSize: '0.9rem' }}>Done, Back to Website</button>
+          </div>
         </div>
       </div>
     );

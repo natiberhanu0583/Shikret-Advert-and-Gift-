@@ -52,6 +52,7 @@ app.post('/api/upload-audio', upload.single('audio'), (req, res) => {
 
 // JSON File Database setup
 const DB_FILE = path.join(__dirname, 'database.json');
+const TG_MAP_FILE = path.join(__dirname, 'telegram_map.json');
 
 // Default initial state
 const defaultDB = {
@@ -73,6 +74,12 @@ async function initializeDB() {
         await fs.writeFile(DB_FILE, JSON.stringify(defaultDB, null, 2), 'utf8');
         console.log('✅ Created new JSON database at:', DB_FILE);
     }
+    try {
+        await fs.access(TG_MAP_FILE);
+    } catch {
+        await fs.writeFile(TG_MAP_FILE, JSON.stringify({}, null, 2), 'utf8');
+        console.log('✅ Created new Telegram user map at:', TG_MAP_FILE);
+    }
 }
 
 // Helper: Read the entire database
@@ -88,6 +95,7 @@ async function writeDB(data) {
 
 // Helper: Simulate sending status notification to customer
 async function sendNotification(order, status) {
+    console.log(`📣 sendNotification(ID: ${order.id}, Status: ${status}) TRIGGERED...`);
     const method = order.contactMethod || (order.email ? 'email' : (order.phone ? 'phone' : 'general'));
     const value = order.contactValue || order.email || order.phone || 'no contact info';
     const orderTitle = order.service || 'Order';
@@ -97,6 +105,10 @@ async function sendNotification(order, status) {
        msg = ` 🎉 Congratulations ${order.first_name}! Your Project [${orderTitle}] has been DELIVERED! Thank you for choosing Shikret.`;
     } else if(status === 'paid') {
        msg = ` ✅ Payment Received! We are now processing your [${orderTitle}] project.`;
+    } else if(status === 'preparing') {
+       msg = ` ⏳ ${order.first_name}, your order [${orderTitle}] is now in the **PREPARING** stage! Our team is working on it.`;
+    } else if(status === 'completed') {
+       msg = ` ✨ Good news! Your order [${orderTitle}] is now **COMPLETED** and ready for delivery/pickup!`;
     }
 
     console.log(`\n=========================================`);
@@ -107,7 +119,66 @@ async function sendNotification(order, status) {
     console.log(`📝 Message: ${msg}`);
     console.log(`=========================================\n`);
     
-    // In production, integration with Telegram Bot API, SendGrid (Email), or Twilio (SMS) would happen here.
+    // Debug entry
+    console.log(`🤖 DEBUG ENTRY: BotToken? ${!!process.env.TELEGRAM_BOT_TOKEN}, Method: ${method}, OrderID: ${order.id}`);
+
+    // Integration with Telegram Bot API
+    if (process.env.TELEGRAM_BOT_TOKEN && (method.toLowerCase() === 'telegram' || method.toLowerCase() === 'phone' || order.id)) {
+        let finalChatId = value; 
+        const normalizedPhone = value ? value.replace(/\D/g, '') : null;
+
+        try {
+            const mapRes = await fs.readFile(TG_MAP_FILE, 'utf8');
+            const mapData = JSON.parse(mapRes);
+            
+            // Priority 1: Check by Order ID link
+            if (mapData[`order_${order.id}`]) {
+                finalChatId = mapData[`order_${order.id}`];
+                console.log(`🤖 DEBUG: Found mapping for Order #${order.id} -> ${finalChatId}`);
+            }
+            // Priority 2: Use provided username lookup
+            else if (value && value.startsWith('@') && mapData[value.toLowerCase()]) {
+                finalChatId = mapData[value.toLowerCase()];
+                console.log(`🤖 DEBUG: Found mapping for Username ${value} -> ${finalChatId}`);
+            } 
+            // Priority 3: Use provided phone lookup
+            else if (normalizedPhone && mapData[normalizedPhone]) {
+                finalChatId = mapData[normalizedPhone];
+                console.log(`🤖 DEBUG: Found mapping for Phone ${normalizedPhone} -> ${finalChatId}`);
+            }
+        } catch (e) {
+            console.error("🤖 DEBUG: Error in lookup:", e);
+        }
+
+        // Final check: is it numeric?
+        const canSend = finalChatId && /^\d+$/.test(finalChatId.toString());
+        console.log(`🤖 DEBUG: finalChatId=${finalChatId}, canSend=${canSend}, method=${method}`);
+
+        if (canSend) {
+            console.log(`🚀 ATTEMPTING TELEGRAM SEND TO ${finalChatId}...`);
+            try {
+                const botUrl = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`;
+                const response = await fetch(botUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: finalChatId.toString(),
+                        text: msg.replace(/\*\*/g, ''), // Strip Markdown bold
+                        // parse_mode: 'Markdown'
+                    })
+                });
+                const resData = await response.json();
+                console.log(`🤖 DEBUG: Telegram Response:`, resData);
+                if (resData.ok) {
+                    console.log(`✅ Telegram success for ID: ${finalChatId}`);
+                } else {
+                    console.error('❌ Telegram error:', resData.description);
+                }
+            } catch (botErr) {
+                console.error('❌ Telegram connection failed:', botErr);
+            }
+        }
+    }
 }
 
 // ========================
@@ -378,11 +449,73 @@ app.put('/api/settings', async (req, res) => {
     }
 });
 
+// NEW: Telegram Polling to map @username -> chat_id
+let lastUpdateId = 0;
+async function pollTelegramUpdates() {
+    if (!process.env.TELEGRAM_BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN === 'your_telegram_bot_token_here') return;
+    
+    console.log(`🔍 Checking for Telegram updates... [Token: ${process.env.TELEGRAM_BOT_TOKEN.slice(0, 5)}...]`);
+    try {
+        const botToken = process.env.TELEGRAM_BOT_TOKEN;
+        const res = await fetch(`https://api.telegram.org/bot${botToken}/getUpdates?offset=${lastUpdateId + 1}&timeout=30`);
+        const data = await res.json();
+        
+        if (data.ok && data.result.length > 0) {
+            const rawMap = await fs.readFile(TG_MAP_FILE, 'utf8');
+            const mapData = JSON.parse(rawMap);
+            
+            data.result.forEach(update => {
+                lastUpdateId = update.update_id;
+                if (update.message) {
+                    const chatId = update.message.chat.id;
+                    const from = update.message.from;
+                    
+                    // A. Map by Username
+                    if (from && from.username) {
+                        const key = `@${from.username.toLowerCase()}`;
+                        if (mapData[key] !== chatId) {
+                             mapData[key] = chatId;
+                             console.log(`📝 Learned Telegram Mapping: ${key} -> ${chatId}`);
+                        }
+                    }
+                    
+                    // C. Deep-Link Mapping (/start order_12345)
+                    if (update.message.text && update.message.text.startsWith('/start order_')) {
+                        const orderId = update.message.text.split(' ')[1].replace('order_', '');
+                        const key = `order_${orderId}`;
+                        if (mapData[key] !== chatId) {
+                             mapData[key] = chatId;
+                             console.log(`📝 Learned Order mapping: ${key} -> ${chatId}`);
+                             
+                             // Optional: Send a confirmation message to user
+                             fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                                 method: 'POST',
+                                 headers: { 'Content-Type': 'application/json' },
+                                 body: JSON.stringify({
+                                     chat_id: chatId,
+                                     text: `✅ Subscription Successful! You will now receive status updates here for Order #${orderId}.`
+                                 })
+                             }).catch(() => {});
+                        }
+                    }
+                }
+            });
+            await fs.writeFile(TG_MAP_FILE, JSON.stringify(mapData, null, 2));
+        }
+    } catch (e) {
+        console.error('❌ Telegram Polling Error:', e.message);
+    }
+    
+    // Continues polling every 10 seconds to avoid flooding
+    setTimeout(pollTelegramUpdates, 10000);
+}
+
 // Initialize DB then start server
 initializeDB().then(() => {
     app.listen(PORT, () => {
         console.log(`🚀 Shikret API running cleanly on http://localhost:${PORT}`);
         console.log(`📁 Using JSON File Database at: ${DB_FILE}`);
+        pollTelegramUpdates(); // Start bot mapping service
     });
 }).catch(err => {
     console.error('❌ Failed to initialize JSON database:', err);

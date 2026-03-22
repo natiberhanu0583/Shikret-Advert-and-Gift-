@@ -9,6 +9,7 @@ const OrderForm = () => {
     details: ''
   });
   const [status, setStatus] = useState('');
+  const [submittedOrderId, setSubmittedOrderId] = useState(null);
   
   const [settings, setSettings] = useState({
     phone: '+1 (555) 123-4567',
@@ -47,6 +48,8 @@ const OrderForm = () => {
         body: JSON.stringify(payload)
       });
       if (res.ok) {
+        const resData = await res.json();
+        setSubmittedOrderId(resData.id);
         setStatus('success');
         setFormData({ firstName: '', lastName: '', email: '', service: '', details: '' });
       } else {
@@ -91,8 +94,23 @@ const OrderForm = () => {
 
         <form onSubmit={handleSubmit} className="glass-panel animate-fade-in stagger-2" style={{ padding: '3rem', width: '100%' }}>
           {status === 'success' && (
-            <div style={{ background: 'rgba(0,255,0,0.1)', color: '#4ade80', padding: '1rem', borderRadius: '8px', marginBottom: '1.5rem' }}>
-              Your order request has been sent successfully! We will contact you soon.
+            <div className="glass-panel" style={{ padding: '2rem', marginBottom: '2.5rem', textAlign: 'center', borderColor: '#4ade80', background: 'rgba(74, 222, 128, 0.05)' }}>
+              <div style={{ background: '#4ade80', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.2rem' }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <h3 style={{ marginBottom: '0.8rem' }}>Order Request Received!</h3>
+              <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
+                Thank you! We've received your inquiry. Get real-time updates directly on Telegram:
+              </p>
+              <a 
+                href={`https://t.me/${import.meta.env.VITE_TELEGRAM_BOT_NAME}?start=order_${submittedOrderId}`} 
+                target="_blank"
+                rel="noreferrer"
+                className="btn btn-secondary" 
+                style={{ background: 'rgba(56, 189, 248, 0.1)', color: '#38bdf8', border: '1px solid #38bdf8', width: '100%', padding: '0.8rem' }}
+              >
+                🚀 Track via Telegram Bot
+              </a>
             </div>
           )}
           {status === 'error' && (

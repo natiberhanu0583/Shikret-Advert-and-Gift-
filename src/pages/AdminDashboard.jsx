@@ -61,6 +61,7 @@ const AdminDashboard = ({ onLogout }) => {
 
   // Actions
   const handleOrderStatus = async (id, status) => {
+    console.log(`🔵 CLIENT: Updating Order #${id} to ${status}...`);
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/orders/${id}/status`, {
         method: 'PUT',
@@ -394,8 +395,20 @@ const AdminDashboard = ({ onLogout }) => {
                               </button>
                             )}
 
+                            {o.status !== 'preparing' && o.status !== 'completed' && o.status !== 'delivered' && (
+                              <button onClick={() => handleOrderStatus(o.id, 'preparing')} className="btn" style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', padding: '0.5rem 1rem', border: '1px solid #3b82f6', fontSize: '0.85rem' }}>
+                                🛠️ Set Preparing
+                              </button>
+                            )}
+
+                            {o.status === 'preparing' && (
+                              <button onClick={() => handleOrderStatus(o.id, 'completed')} className="btn" style={{ background: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6', padding: '0.5rem 1rem', border: '1px solid #8b5cf6', fontSize: '0.85rem' }}>
+                                ✨ Set Completed
+                              </button>
+                            )}
+
                             {o.status !== 'delivered' && (
-                              <button onClick={() => handleOrderStatus(o.id, 'delivered')} className="btn" style={{ background: 'linear-gradient(45deg, #10b981, #059669)', color: 'white', padding: '0.5rem 1.2rem', border: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <button onClick={() => handleOrderStatus(o.id, 'delivered')} className="btn" style={{ background: 'linear-gradient(45deg, #10b981, #059669)', color: 'white', padding: '0.5rem 1.2rem', border: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold' }}>
                                 <CheckCircle size={18} /> Mark as Delivered
                               </button>
                             )}
