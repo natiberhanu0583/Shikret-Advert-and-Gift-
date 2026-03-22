@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowRight, Sparkles, Printer, Megaphone, MonitorSmartphone, Gift } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { Link } from 'react-router-dom';
 
 const Hero = () => {
   const { t } = useLanguage();
@@ -37,9 +38,9 @@ const Hero = () => {
       {/* Centered Modern Category Selector (The "Top Capabilities" buttons) */}
       <div className="animate-fade-in capability-grid" style={{ width: '100%', maxWidth: '900px', marginBottom: '1.5rem' }}>
         {categories.map((cat, idx) => (
-          <a 
+          <Link 
             key={idx}
-            href={`/services/${encodeURIComponent(cat.id)}`} 
+            to={`/services/${encodeURIComponent(cat.id)}`} 
             className="glass-panel" 
             style={{ 
               display: 'flex', 
@@ -58,7 +59,7 @@ const Hero = () => {
             <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text)' }}>
               {t(cat.label)}
             </span>
-          </a>
+          </Link>
         ))}
       </div>
 

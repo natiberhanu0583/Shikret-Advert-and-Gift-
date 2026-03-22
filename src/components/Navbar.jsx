@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Menu, X, Printer, Monitor, Video, Gift, Lock, Globe } from 'lucide-react';
 import { useLanguage, translations } from '../context/LanguageContext';
+import { Link } from 'react-router-dom';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -19,14 +20,14 @@ const Navbar = () => {
       margin: '0 auto'
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <a href="/" style={{ textDecoration: 'none', color: 'inherit' }}>
+        <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <div style={{ background: 'var(--primary)', padding: '0.5rem', borderRadius: '8px' }}>
               <Printer size={24} color="#fff" />
             </div>
             <span className="heading-gradient" style={{ fontSize: '1.5rem', fontWeight: 800, letterSpacing: '1px' }}>SHIKRET</span>
           </div>
-        </a>
+        </Link>
 
         {/* Desktop Menu */}
         <div className="hidden-mobile" style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
@@ -51,9 +52,9 @@ const Navbar = () => {
             ))}
           </div>
 
-          <a href="/admin" style={{ color: 'var(--text-muted)', textDecoration: 'none', fontWeight: 400, display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', opacity: 0.6, transition: '0.3s' }} onMouseEnter={(e) => e.target.style.opacity = '1'} onMouseLeave={(e) => e.target.style.opacity = '0.6'}>
+          <Link to="/admin" style={{ color: 'var(--text-muted)', textDecoration: 'none', fontWeight: 400, display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', opacity: 0.6, transition: '0.3s' }} onMouseEnter={(e) => e.target.style.opacity = '1'} onMouseLeave={(e) => e.target.style.opacity = '0.6'}>
             <Lock size={12} /> {t('nav_admin')}
-          </a>
+          </Link>
           <a href="/#order" className="btn btn-primary" style={{ padding: '0.6rem 1.2rem' }}>{t('nav_order')}</a>
         </div>
 
@@ -77,9 +78,9 @@ const Navbar = () => {
             ))}
           </div>
 
-          <a href="/admin" onClick={() => setIsOpen(false)} style={{ color: 'var(--text-muted)', textDecoration: 'none', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <Link to="/admin" onClick={() => setIsOpen(false)} style={{ color: 'var(--text-muted)', textDecoration: 'none', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <Lock size={16} /> {t('nav_admin')}
-          </a>
+          </Link>
           <a href="/#order" onClick={() => setIsOpen(false)} className="btn btn-primary">{t('nav_order')}</a>
         </div>
       )}
