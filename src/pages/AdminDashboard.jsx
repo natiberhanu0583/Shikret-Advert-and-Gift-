@@ -42,7 +42,7 @@ const AdminDashboard = ({ onLogout }) => {
 
   const fetchOrders = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/orders`);
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/orders`, { cache: 'no-store' });
       if (res.ok) setOrders(await res.json());
     } catch (e) { console.error('Error fetching orders:', e); }
   };
@@ -317,54 +317,6 @@ const AdminDashboard = ({ onLogout }) => {
           <div className="animate-fade-in">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
               <h1 style={{ margin: 0 }}>Manage Customer Orders</h1>
-              <button
-                onClick={() => {
-                  const win = window.open('', '_blank');
-                  win.document.write(`
-                    <html><head><title>Shikret — Order Report</title><style>
-                      body { font-family: Arial, sans-serif; padding: 2rem; color: #000; }
-                      h1 { color: #06b6d4; }
-                      table { width: 100%; border-collapse: collapse; margin-top: 1.5rem; }
-                      th { background: #06b6d4; color: white; padding: 10px 12px; text-align: left; }
-                      td { padding: 10px 12px; border-bottom: 1px solid #ddd; vertical-align: top; }
-                      tr:nth-child(even) { background: #f5f5f5; }
-                      .status { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; }
-                      .delivered { background: #d1fae5; color: #065f46; }
-                      .pending { background: #fef3c7; color: #92400e; }
-                      .preparing { background: #dbeafe; color: #1e40af; }
-                      .completed { background: #ede9fe; color: #5b21b6; }
-                      .paid { background: #d1fae5; color: #065f46; }
-                      @media print { button { display: none; } }
-                    </style></head><body>
-                    <h1>📦 Shikret Advert &amp; Gift — Order Report</h1>
-                    <p>Generated: ${new Date().toLocaleString()}</p>
-                    <p>Total Orders: <strong>${orders.length}</strong></p>
-                    <button onclick="window.print()" style="padding:10px 20px;background:#06b6d4;color:white;border:none;border-radius:8px;cursor:pointer;font-size:1rem;margin-bottom:1rem;">🖨️ Print / Save as PDF</button>
-                    <table>
-                      <thead><tr>
-                        <th>#</th><th>Customer Name</th><th>Phone / Contact</th><th>Service / Item</th><th>Status</th><th>Paid</th><th>Date</th>
-                      </tr></thead>
-                      <tbody>
-                        ${orders.map((o, i) => `
-                          <tr>
-                            <td>${i + 1}</td>
-                            <td>${o.first_name || ''} ${o.last_name || ''}</td>
-                            <td>${o.phone || o.email || o.contactValue || '—'}</td>
-                            <td>${o.service || '—'}</td>
-                            <td><span class="status ${o.status}">${(o.status || 'pending').toUpperCase()}</span></td>
-                            <td>${o.paid ? '✅ Yes' : '❌ No'}</td>
-                            <td>${o.created_at ? new Date(o.created_at).toLocaleDateString() : '—'}</td>
-                          </tr>`).join('')}
-                      </tbody>
-                    </table>
-                    </body></html>`);
-                  win.document.close();
-                }}
-                className="btn btn-primary"
-                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.7rem 1.5rem' }}
-              >
-                <Download size={18} /> Export / Print PDF
-              </button>
             </div>
             {Object.keys(groupedOrders).length === 0 ? <p style={{ color: 'var(--text-muted)' }}>No orders yet.</p> : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>

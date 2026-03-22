@@ -193,7 +193,7 @@ async function sendNotification(order, status) {
         console.error('❌ Error reading telegram_map.json:', e.message);
     }
 
-    if (!finalChatId || !/^\d+$/.test(finalChatId.toString())) {
+    if (!finalChatId || !/^-?\d+$/.test(finalChatId.toString())) {
         console.warn(`⚠️ Invalid or missing chat_id (${finalChatId}) — cannot send Telegram message.`);
         return;
     }
@@ -549,7 +549,7 @@ async function pollTelegramUpdates() {
 }
 
 // SPA Catch-all: If the request is NOT for an API or an image, serve the React APP
-app.get('*', (req, res) => {
+app.get(/.*/, (req, res) => {
     // Only serve index.html for non-API, non-Uploads, non-Static-File-looking requests
     if (req.path.startsWith('/api/') || req.path.startsWith('/uploads/')) {
         return res.status(404).json({ error: 'Resource not found' });
