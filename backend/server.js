@@ -97,91 +97,124 @@ async function writeDB(data) {
     await fs.writeFile(DB_FILE, JSON.stringify(data, null, 2), 'utf8');
 }
 
-// Helper: Simulate sending status notification to customer
+// Helper: Send Telegram status notification to customer
 async function sendNotification(order, status) {
-    console.log(`📣 sendNotification(ID: ${order.id}, Status: ${status}) TRIGGERED...`);
-    const method = order.contactMethod || (order.email ? 'email' : (order.phone ? 'phone' : 'general'));
-    const value = order.contactValue || order.email || order.phone || 'no contact info';
-    const orderTitle = order.service || 'Order';
-    
-    let msg = `Hello ${order.first_name} ${order.last_name || ''}! Your order [${orderTitle}] status updated: **${status.toUpperCase()}**.`;
-    if(status === 'delivered') {
-       msg = ` 🎉 Congratulations ${order.first_name}! Your Project [${orderTitle}] has been DELIVERED! Thank you for choosing Shikret.`;
-    } else if(status === 'paid') {
-       msg = ` ✅ Payment Received! We are now processing your [${orderTitle}] project.`;
-    } else if(status === 'preparing') {
-       msg = ` ⏳ ${order.first_name}, your order [${orderTitle}] is now in the **PREPARING** stage! Our team is working on it.`;
-    } else if(status === 'completed') {
-       msg = ` ✨ Good news! Your order [${orderTitle}] is now **COMPLETED** and ready for delivery/pickup!`;
+    console.log(`\n📣 sendNotification() - Order #${order.id}, Status: ${status.toUpperCase()}`);
+
+    const firstName = order.first_name || 'Customer';
+    const lastName = order.last_name || '';
+    const orderTitle = order.service || 'your order';
+
+    // === Build the message per status ===
+    let msg = '';
+    if (status === 'paid') {
+        msg = [
+            `✅ Payment Received — Shikret Advert`,
+            ``,
+            `Hello ${firstName}! We have confirmed your payment.`,
+            `📦 Project: ${orderTitle}`,
+            `⏳ Status: Your order is now being reviewed.`,
+            ``,
+            `We will notify you when preparation begins.`,
+            `Thank you for choosing Shikret!`
+        ].join('\n');
+    } else if (status === 'preparing') {
+        msg = [
+            `🛠️ Order Preparing — Shikret Advert`,
+            ``,
+            `Hello ${firstName}! Great news!`,
+            `📦 Project: ${orderTitle}`,
+            `⚙️ Status: Our team has started working on your project.`,
+            ``,
+            `We will notify you when it's completed.`,
+            `Shikret Advert & Gift`
+        ].join('\n');
+    } else if (status === 'completed') {
+        msg = [
+            `🎨 Order Completed — Shikret Advert`,
+            ``,
+            `Hello ${firstName}! Your project is DONE!`,
+            `📦 Project: ${orderTitle}`,
+            `✨ Status: Completed and ready for delivery/pickup.`,
+            ``,
+            `We will contact you shortly to arrange delivery.`,
+            `Shikret Advert & Gift`
+        ].join('\n');
+    } else if (status === 'delivered') {
+        msg = [
+            `🎉 Order Delivered — Shikret Advert`,
+            ``,
+            `Congratulations ${firstName} ${lastName}!`,
+            `📦 Project: ${orderTitle}`,
+            `🚀 Status: DELIVERED successfully!`,
+            ``,
+            `Thank you so much for choosing Shikret Advert & Gift.`,
+            `We look forward to serving you again! ⭐`
+        ].join('\n');
+    } else {
+        msg = `Hello ${firstName}, your order [${orderTitle}] status has been updated to: ${status.toUpperCase()}. - Shikret Advert`;
     }
 
-    console.log(`\n=========================================`);
-    console.log(`🔔 STATUS NOTIFICATION TO CUSTOMER`);
-    console.log(`👤 Customer: ${order.first_name} ${order.last_name || ''}`);
-    console.log(`📱 Platform: ${method.toUpperCase()}`);
-    console.log(`🆔 Contact Detail: ${value}`);
-    console.log(`📝 Message: ${msg}`);
-    console.log(`=========================================\n`);
-    
-    // Debug entry
-    console.log(`🤖 DEBUG ENTRY: BotToken? ${!!process.env.TELEGRAM_BOT_TOKEN}, Method: ${method}, OrderID: ${order.id}`);
+    console.log(`📝 Message:\n${msg}`);
 
-    // Integration with Telegram Bot API
-    if (process.env.TELEGRAM_BOT_TOKEN && (method.toLowerCase() === 'telegram' || method.toLowerCase() === 'phone' || order.id)) {
-        let finalChatId = value; 
-        const normalizedPhone = value ? value.replace(/\D/g, '') : null;
+    // === Find Telegram chat_id ===
+    if (!process.env.TELEGRAM_BOT_TOKEN) {
+        console.warn('⚠️ TELEGRAM_BOT_TOKEN not set — skipping Telegram notification.');
+        return;
+    }
 
-        try {
-            const mapRes = await fs.readFile(TG_MAP_FILE, 'utf8');
-            const mapData = JSON.parse(mapRes);
-            
-            // Priority 1: Check by Order ID link
-            if (mapData[`order_${order.id}`]) {
-                finalChatId = mapData[`order_${order.id}`];
-                console.log(`🤖 DEBUG: Found mapping for Order #${order.id} -> ${finalChatId}`);
-            }
-            // Priority 2: Use provided username lookup
-            else if (value && value.startsWith('@') && mapData[value.toLowerCase()]) {
-                finalChatId = mapData[value.toLowerCase()];
-                console.log(`🤖 DEBUG: Found mapping for Username ${value} -> ${finalChatId}`);
-            } 
-            // Priority 3: Use provided phone lookup
-            else if (normalizedPhone && mapData[normalizedPhone]) {
-                finalChatId = mapData[normalizedPhone];
-                console.log(`🤖 DEBUG: Found mapping for Phone ${normalizedPhone} -> ${finalChatId}`);
-            }
-        } catch (e) {
-            console.error("🤖 DEBUG: Error in lookup:", e);
+    const contactValue = order.contactValue || order.phone || '';
+    const normalizedPhone = contactValue.replace(/\D/g, '');
+    let finalChatId = null;
+
+    try {
+        const mapRaw = await fs.readFile(TG_MAP_FILE, 'utf8');
+        const mapData = JSON.parse(mapRaw);
+
+        // Priority 1: linked by order ID (most reliable — set when user /start-ed the bot with their order code)
+        if (mapData[`order_${order.id}`]) {
+            finalChatId = mapData[`order_${order.id}`];
+            console.log(`✅ Chat ID found via Order ID link: ${finalChatId}`);
         }
-
-        // Final check: is it numeric?
-        const canSend = finalChatId && /^\d+$/.test(finalChatId.toString());
-        console.log(`🤖 DEBUG: finalChatId=${finalChatId}, canSend=${canSend}, method=${method}`);
-
-        if (canSend) {
-            console.log(`🚀 ATTEMPTING TELEGRAM SEND TO ${finalChatId}...`);
-            try {
-                const botUrl = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`;
-                const response = await fetch(botUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        chat_id: finalChatId.toString(),
-                        text: msg.replace(/\*\*/g, ''), // Strip Markdown bold
-                        // parse_mode: 'Markdown'
-                    })
-                });
-                const resData = await response.json();
-                console.log(`🤖 DEBUG: Telegram Response:`, resData);
-                if (resData.ok) {
-                    console.log(`✅ Telegram success for ID: ${finalChatId}`);
-                } else {
-                    console.error('❌ Telegram error:', resData.description);
-                }
-            } catch (botErr) {
-                console.error('❌ Telegram connection failed:', botErr);
-            }
+        // Priority 2: linked by Telegram username
+        else if (contactValue && contactValue.startsWith('@') && mapData[contactValue.toLowerCase()]) {
+            finalChatId = mapData[contactValue.toLowerCase()];
+            console.log(`✅ Chat ID found via username ${contactValue}: ${finalChatId}`);
         }
+        // Priority 3: linked by phone number
+        else if (normalizedPhone && mapData[normalizedPhone]) {
+            finalChatId = mapData[normalizedPhone];
+            console.log(`✅ Chat ID found via phone ${normalizedPhone}: ${finalChatId}`);
+        }
+        else {
+            console.warn(`⚠️ No Telegram chat_id mapping found for order #${order.id} (contact: ${contactValue})`);
+        }
+    } catch (e) {
+        console.error('❌ Error reading telegram_map.json:', e.message);
+    }
+
+    if (!finalChatId || !/^\d+$/.test(finalChatId.toString())) {
+        console.warn(`⚠️ Invalid or missing chat_id (${finalChatId}) — cannot send Telegram message.`);
+        return;
+    }
+
+    // === Send Telegram message ===
+    try {
+        console.log(`🚀 Sending Telegram message to chat_id: ${finalChatId}`);
+        const botUrl = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`;
+        const response = await fetch(botUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: finalChatId.toString(), text: msg })
+        });
+        const resData = await response.json();
+        if (resData.ok) {
+            console.log(`✅ Telegram notification sent successfully to ${finalChatId}`);
+        } else {
+            console.error(`❌ Telegram API error: ${resData.description}`);
+        }
+    } catch (botErr) {
+        console.error('❌ Telegram fetch failed:', botErr.message);
     }
 }
 
