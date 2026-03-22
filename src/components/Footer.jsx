@@ -10,7 +10,7 @@ const Footer = () => {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const res = await fetch('http://localhost:3001/api/settings');
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/settings`);
         if (res.ok) {
            const data = await res.json();
            setSettings(prev => ({...prev, ...data}));
@@ -62,8 +62,11 @@ const Footer = () => {
             </div>
           </div>
         </div>
-        <div style={{ paddingTop: '2rem', borderTop: '1px solid var(--glass-border)', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-          &copy; {new Date().getFullYear()} Shikret Printing & Advertising. All rights reserved.
+        <div style={{ paddingTop: '2rem', borderTop: '1px solid var(--glass-border)', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+          <div>&copy; {new Date().getFullYear()} Shikret Printing & Advertising. All rights reserved.</div>
+          <a href="/admin" style={{ color: 'var(--text-muted)', textDecoration: 'none', background: 'rgba(255,255,255,0.05)', padding: '0.4rem 1rem', borderRadius: '30px', fontSize: '0.8rem', border: '1px solid var(--glass-border)', transition: '0.3s' }} onMouseEnter={(e) => {e.target.style.background='rgba(255,255,255,0.1)'; e.target.style.color='#fff'}} onMouseLeave={(e) => {e.target.style.background='rgba(255,255,255,0.05)'; e.target.style.color='var(--text-muted)'}}>
+            Admin Portal Access
+          </a>
         </div>
       </div>
     </footer>

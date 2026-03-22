@@ -10,7 +10,7 @@ const Hero = () => {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const res = await fetch('http://localhost:3001/api/settings');
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/settings`);
         if (res.ok) {
            const data = await res.json();
            setSettings(prev => ({...prev, ...data}));
@@ -24,7 +24,7 @@ const Hero = () => {
 
   return (
     <section id="home" style={{ paddingTop: '8rem', paddingBottom: '4rem', minHeight: '100vh', display: 'flex', alignItems: 'center' }} className="container">
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '4rem', alignItems: 'center' }} className="grid-cols-2">
+      <div style={{ display: 'grid', gap: '4rem', alignItems: 'center' }} className="grid-cols-2">
         <div className="animate-fade-in">
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '6px 12px', background: 'var(--glass-bg)', borderRadius: '20px', border: '1px solid var(--glass-border)', color: 'var(--primary)', fontWeight: 600, fontSize: '0.9rem', marginBottom: '1.5rem' }}>
             <Sparkles size={16} /> Premium Printing & Advertising

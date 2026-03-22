@@ -18,7 +18,7 @@ const OrderForm = () => {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const res = await fetch('http://localhost:3001/api/settings');
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/settings`);
         if (res.ok) {
            const data = await res.json();
            setSettings(prev => ({...prev, ...data}));
@@ -41,7 +41,7 @@ const OrderForm = () => {
     };
 
     try {
-      const res = await fetch('http://localhost:3001/api/orders', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -60,7 +60,7 @@ const OrderForm = () => {
 
   return (
     <section id="order" style={{ padding: '6rem 0', background: 'var(--bg)', position: 'relative' }}>
-      <div className="container" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1.5fr)', gap: '4rem', alignItems: 'flex-start' }}>
+      <div className="container grid-cols-2" style={{ display: 'grid', gap: '4rem', alignItems: 'flex-start' }}>
         <div className="animate-fade-in stagger-1">
           <h2 style={{ fontSize: '3rem', marginBottom: '1rem', lineHeight: 1.2 }} className="heading-gradient">Ready to Work Together?</h2>
           <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem', marginBottom: '2rem' }}>

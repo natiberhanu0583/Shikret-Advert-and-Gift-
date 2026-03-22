@@ -112,7 +112,7 @@ const InstantOrderModal = ({ isOpen, request, user, onClose }) => {
         const formData = new FormData();
         formData.append('audio', audioBlob, 'voice-message.webm');
         
-        const uploadRes = await fetch('http://localhost:3001/api/upload-audio', {
+        const uploadRes = await fetch(`${import.meta.env.VITE_API_URL}/api/upload-audio`, {
           method: 'POST',
           body: formData
         });
@@ -128,7 +128,7 @@ const InstantOrderModal = ({ isOpen, request, user, onClose }) => {
           setIsUploadingScreenshot(true);
           const formData = new FormData();
           formData.append('image', screenshotFile);
-          const uploadRes = await fetch('http://localhost:3001/api/upload', {
+          const uploadRes = await fetch(`${import.meta.env.VITE_API_URL}/api/upload`, {
               method: 'POST',
               body: formData
           });
@@ -152,7 +152,7 @@ const InstantOrderModal = ({ isOpen, request, user, onClose }) => {
         screenshotUrl: screenshotUrl
       };
 
-      const orderRes = await fetch('http://localhost:3001/api/orders', {
+      const orderRes = await fetch(`${import.meta.env.VITE_API_URL}/api/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orderPayload)

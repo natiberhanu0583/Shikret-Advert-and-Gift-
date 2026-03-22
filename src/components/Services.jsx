@@ -69,7 +69,7 @@ const Services = () => {
   useEffect(() => {
     const fetchServices = async () => {
       try {
-        const res = await fetch('http://localhost:3001/api/posts');
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/posts`);
         if (res.ok) setPosts(await res.json());
       } catch (err) {
         console.error('Error fetching services:', err);
@@ -102,7 +102,7 @@ const Services = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem' }}>
+        <div className="grid grid-cols-4" style={{ display: 'grid', gap: '2rem' }}>
           {categories.map((category, idx) => {
             // Filter dynamic posts for THIS specific category
             const categoryPosts = posts.filter(post => post.category === category.id);

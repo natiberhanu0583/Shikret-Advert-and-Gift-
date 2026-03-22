@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Package, FileText, Settings as ConfigIcon, LogOut, CheckCircle, Trash2, Edit, UploadCloud, MessageCircle, Heart } from 'lucide-react';
 
-const AdminDashboard = () => {
+const AdminDashboard = ({ onLogout }) => {
   const [activeTab, setActiveTab] = useState('orders');
 
   // Data State
@@ -33,23 +33,25 @@ const AdminDashboard = () => {
     fetchSettings();
   }, []);
 
+  // Removed redundant internal login handlers as they are now in ProtectedAdminDashboard
+
   const fetchOrders = async () => {
     try {
-      const res = await fetch('http://localhost:3001/api/orders');
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/orders`);
       if (res.ok) setOrders(await res.json());
     } catch (e) { console.error('Error fetching orders:', e); }
   };
 
   const fetchPosts = async () => {
     try {
-      const res = await fetch('http://localhost:3001/api/posts');
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/posts`);
       if (res.ok) setPosts(await res.json());
     } catch (e) { console.error('Error fetching posts:', e); }
   };
 
   const fetchSettings = async () => {
     try {
-      const res = await fetch('http://localhost:3001/api/settings');
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/settings`);
       if (res.ok) {
         const data = await res.json();
         setSettings(prev => ({ ...prev, ...data }));
@@ -60,7 +62,7 @@ const AdminDashboard = () => {
   // Actions
   const handleOrderStatus = async (id, status) => {
     try {
-      const res = await fetch(`http://localhost:3001/api/orders/${id}/status`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/orders/${id}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status })
@@ -77,7 +79,7 @@ const AdminDashboard = () => {
 
   const handleMarkAsPaid = async (id, paid) => {
     try {
-      await fetch(`http://localhost:3001/api/orders/${id}/paid`, {
+      await fetch(`${import.meta.env.VITE_API_URL}/api/orders/${id}/paid`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ paid })
@@ -100,7 +102,7 @@ const AdminDashboard = () => {
         const formData = new FormData();
         formData.append('image', uploadFile);
 
-        const uploadRes = await fetch('http://localhost:3001/api/upload', {
+        const uploadRes = await fetch(`${import.meta.env.VITE_API_URL}/api/upload`, {
           method: 'POST',
           body: formData
         });
@@ -121,13 +123,13 @@ const AdminDashboard = () => {
 
       let response;
       if (editingPostId) {
-        response = await fetch(`http://localhost:3001/api/posts/${editingPostId}`, {
+        response = await fetch(`${import.meta.env.VITE_API_URL}/api/posts/${editingPostId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
       } else {
-        response = await fetch('http://localhost:3001/api/posts', {
+        response = await fetch(`${import.meta.env.VITE_API_URL}/api/posts`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
@@ -176,7 +178,7 @@ const AdminDashboard = () => {
   const handleDeletePost = async (id) => {
     if (!window.confirm("Are you sure you want to delete this service permanently?")) return;
     try {
-      await fetch(`http://localhost:3001/api/posts/${id}`, { method: 'DELETE' });
+      await fetch(`${import.meta.env.VITE_API_URL}/api/posts/${id}`, { method: 'DELETE' });
       fetchPosts();
     } catch (e) { console.error(e); }
   };
@@ -184,7 +186,7 @@ const AdminDashboard = () => {
   const handleDeleteOrder = async (id) => {
     if (!window.confirm("Are you sure you want to completely delete this order history?")) return;
     try {
-      await fetch(`http://localhost:3001/api/orders/${id}`, { method: 'DELETE' });
+      await fetch(`${import.meta.env.VITE_API_URL}/api/orders/${id}`, { method: 'DELETE' });
       fetchOrders();
     } catch (e) { console.error(e); }
   };
@@ -192,7 +194,7 @@ const AdminDashboard = () => {
   const handleDeleteComment = async (postId, commentId) => {
     if (!window.confirm("Delete this customer comment?")) return;
     try {
-      await fetch(`http://localhost:3001/api/posts/${postId}/comment/${commentId}`, { method: 'DELETE' });
+      await fetch(`${import.meta.env.VITE_API_URL}/api/posts/${postId}/comment/${commentId}`, { method: 'DELETE' });
       fetchPosts();
     } catch (e) { console.error(e); }
   }
@@ -200,7 +202,7 @@ const AdminDashboard = () => {
   const handleUpdateSettings = async (e) => {
     e.preventDefault();
     try {
-      await fetch('http://localhost:3001/api/settings', {
+      await fetch(`${import.meta.env.VITE_API_URL}/api/settings`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(settings)
@@ -297,9 +299,14 @@ const AdminDashboard = () => {
           <TabButton id="interactions" icon={MessageCircle} label="Likes & Comments" />
           <TabButton id="posts" icon={FileText} label="Services Manager" />
           <TabButton id="settings" icon={ConfigIcon} label="Web Interfaces" />
-          <div style={{ marginTop: 'auto', paddingTop: '2rem' }}>
-            <a href="/" style={{ color: 'var(--text-muted)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <LogOut size={20} /> View Website
+          <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid var(--glass-border)' }}>
+            <button onClick={onLogout} style={{ background: 'transparent', border: 'none', color: '#f87171', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', width: '100%', textAlign: 'left', padding: '0.5rem 0', fontSize: '1rem' }}>
+              <LogOut size={20} /> Sign Out Admin
+            </button>
+          </div>
+          <div style={{ marginTop: '0.5rem' }}>
+            <a href="/" style={{ color: 'var(--text-muted)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem' }}>
+               View Website
             </a>
           </div>
         </div>
@@ -666,4 +673,54 @@ const AdminDashboard = () => {
   );
 };
 
-export default AdminDashboard;
+// Add check for authentication before rendering the dashboard
+const ProtectedAdminDashboard = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(localStorage.getItem('admin_authenticated') === 'true');
+  const [passwordInput, setPasswordInput] = useState('');
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    const adminPass = import.meta.env.VITE_ADMIN_PASSWORD || 'admin123';
+    if (passwordInput === adminPass) {
+      localStorage.setItem('admin_authenticated', 'true');
+      setIsAuthenticated(true);
+    } else {
+      alert('Incorrect Password');
+    }
+  };
+
+  if (!isAuthenticated) {
+    return (
+      <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)' }}>
+        <form onSubmit={handleLogin} className="glass-panel" style={{ padding: '3rem', width: '100%', maxWidth: '400px', textAlign: 'center' }}>
+          <div style={{ display: 'inline-flex', padding: '1rem', borderRadius: '50%', background: 'rgba(6, 182, 212, 0.1)', marginBottom: '1.5rem' }}>
+            <Package size={32} color="var(--primary)" />
+          </div>
+          <h2 style={{ marginBottom: '0.5rem' }}>Admin Secure Login</h2>
+          <p style={{ color: 'var(--text-muted)', marginBottom: '2rem', fontSize: '0.9rem' }}>Shikret Advert & Gift Official Authorization Required</p>
+          <div className="form-group" style={{ textAlign: 'left' }}>
+            <label className="form-label">Office Password</label>
+            <input 
+              type="password" 
+              className="form-control" 
+              value={passwordInput} 
+              onChange={e => setPasswordInput(e.target.value)} 
+              placeholder="••••••••"
+              required
+              autoFocus
+            />
+          </div>
+          <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '1rem', padding: '1rem' }}>Unlock Dashboard</button>
+          <a href="/" style={{ display: 'block', marginTop: '1.5rem', color: 'var(--text-muted)', textDecoration: 'none', fontSize: '0.9rem' }}>← Back to Homepage</a>
+        </form>
+      </div>
+    );
+  }
+
+  return <AdminDashboard onLogout={() => {
+    localStorage.removeItem('admin_authenticated');
+    setIsAuthenticated(false);
+  }} />;
+};
+
+export default ProtectedAdminDashboard;

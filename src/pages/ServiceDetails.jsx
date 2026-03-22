@@ -32,7 +32,7 @@ const ServiceDetails = () => {
 
   const fetchServices = async () => {
     try {
-      const res = await fetch('http://localhost:3001/api/posts');
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/posts`);
       if (res.ok) {
         const allPosts = await res.json();
         setPosts(allPosts.filter(p => p.category === decodedCategory));
@@ -69,7 +69,7 @@ const ServiceDetails = () => {
     requireAuth(async (user) => {
       try {
         setPosts(posts.map(p => p.id === postId ? { ...p, likes: (p.likes || 0) + 1 } : p));
-        await fetch(`http://localhost:3001/api/posts/${postId}/like`, { 
+        await fetch(`${import.meta.env.VITE_API_URL}/api/posts/${postId}/like`, { 
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ user })
@@ -90,7 +90,7 @@ const ServiceDetails = () => {
       try {
         setCommentStatus({ ...commentStatus, [postId]: 'sending' });
 
-        const res = await fetch(`http://localhost:3001/api/posts/${postId}/comment`, {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/posts/${postId}/comment`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ text, user })

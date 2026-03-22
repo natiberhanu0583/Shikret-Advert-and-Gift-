@@ -54,6 +54,12 @@ h1, h2, h3, h4, h5, h6 {
   padding: 0 2rem;
 }
 
+@media (max-width: 768px) {
+  .container {
+    padding: 0 1.5rem;
+  }
+}
+
 /* UI Elements */
 .btn {
   display: inline-flex;
@@ -111,6 +117,15 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
+@media (max-width: 768px) {
+  .glass-panel {
+    padding: 1.5rem !important;
+  }
+  .glass-panel:hover {
+    transform: none;
+  }
+}
+
 /* Animations */
 @keyframes fade-in-up {
   0% { opacity: 0; transform: translateY(20px); }
@@ -141,8 +156,29 @@ h1, h2, h3, h4, h5, h6 {
 .grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
 .grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
 
-@media (max-width: 900px) {
-  .grid-cols-3, .grid-cols-4 { grid-template-columns: repeat(2, 1fr); }
+@media (max-width: 768px) {
+  .grid-cols-2, .grid-cols-3, .grid-cols-4 { 
+    grid-template-columns: 1fr; 
+  }
+  
+  h1 { font-size: 2.5rem !important; }
+  h2 { font-size: 2rem !important; }
+  h3 { font-size: 1.5rem !important; }
+  
+  .hidden-mobile { display: none !important; }
+  .show-mobile { display: block !important; }
+  
+  section {
+    padding: 4rem 0 !important;
+  }
+  
+  main {
+    padding: 1.5rem !important;
+  }
+  
+  .grid {
+    gap: 1.5rem !important;
+  }
 }
 
 @media (max-width: 600px) {

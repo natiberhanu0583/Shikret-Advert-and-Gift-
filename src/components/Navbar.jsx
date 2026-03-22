@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Menu, X, Printer, Monitor, Video, Gift } from 'lucide-react';
+import { Menu, X, Printer, Monitor, Video, Gift, Lock } from 'lucide-react';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -20,6 +20,9 @@ const Navbar = () => {
         <div className="hidden-mobile" style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
           <a href="/#home" style={{ color: 'var(--text)', textDecoration: 'none', fontWeight: 500 }}>Home</a>
           <a href="/#services" style={{ color: 'var(--text)', textDecoration: 'none', fontWeight: 500 }}>Services</a>
+          <a href="/admin" style={{ color: 'var(--text-muted)', textDecoration: 'none', fontWeight: 400, display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', opacity: 0.6, transition: '0.3s' }} onMouseEnter={(e) => e.target.style.opacity = '1'} onMouseLeave={(e) => e.target.style.opacity = '0.6'}>
+            <Lock size={12} /> Office Login
+          </a>
           <a href="/#order" className="btn btn-primary">Order Now</a>
         </div>
 
@@ -34,6 +37,9 @@ const Navbar = () => {
         <div className="mobile-menu" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem', padding: '1rem 0', borderTop: '1px solid var(--glass-border)' }}>
           <a href="/#home" onClick={() => setIsOpen(false)} style={{ color: 'var(--text)', textDecoration: 'none', fontWeight: 500 }}>Home</a>
           <a href="/#services" onClick={() => setIsOpen(false)} style={{ color: 'var(--text)', textDecoration: 'none', fontWeight: 500 }}>Services</a>
+          <a href="/admin" onClick={() => setIsOpen(false)} style={{ color: 'var(--text-muted)', textDecoration: 'none', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Lock size={16} /> Admin Portal
+          </a>
           <a href="/#order" onClick={() => setIsOpen(false)} className="btn btn-primary">Order Now</a>
         </div>
       )}
