@@ -15,9 +15,10 @@ const AdminDashboard = ({ onLogout }) => {
 
   // Post Form State
   const [editingPostId, setEditingPostId] = useState(null);
-  const [newPost, setNewPost] = useState({ title: '', content: '', category: 'Printing Services', subCategory: '', image: '', price: '' });
+  const [newPost, setNewPost] = useState({ title: '', content: '', category: 'Printing Services', subCategory: '', image: '', price: '', buttonLabel: '', buttonUrl: '' });
+  const [showButtonFields, setShowButtonFields] = useState(false);
   
-  const [customMainCat, setCustomMainMainCat] = useState('');
+  const [customMainCat, setCustomMainCat] = useState('');
   const [useCustomMainCat, setUseCustomMainCat] = useState(false);
   
   const [customSubCat, setCustomSubCat] = useState('');
@@ -134,9 +135,10 @@ const AdminDashboard = ({ onLogout }) => {
         if (response.ok) {
           alert('Saved successfully!');
           setEditingPostId(null);
-          setNewPost({ title: '', content: '', category: 'Printing Services', subCategory: '', image: '', price: '' });
-          setCustomMainMainCat(''); setUseCustomMainCat(false);
+          setNewPost({ title: '', content: '', category: 'Printing Services', subCategory: '', image: '', price: '', buttonLabel: '', buttonUrl: '' });
+          setCustomMainCat(''); setUseCustomMainCat(false);
           setCustomSubCat(''); setUseCustomSubCat(false);
+          setShowButtonFields(false);
           setUploadFile(null);
           fetchPosts();
         }
@@ -146,17 +148,24 @@ const AdminDashboard = ({ onLogout }) => {
   const handleEditClick = (post) => {
     window.scrollTo(0, 0);
     setEditingPostId(post.id);
+    setUseCustomMainCat(false);
     setUseCustomSubCat(false);
+    setCustomMainCat('');
+    setCustomSubCat('');
     setUploadFile(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
 
+    const hasButton = !!(post.buttonLabel || post.buttonUrl);
+    setShowButtonFields(hasButton);
     setNewPost({
       title: post.title,
       content: post.content,
       category: post.category,
-      subCategory: post.subCategory,
+      subCategory: post.subCategory || '',
       image: post.image,
-      price: post.price || ''
+      price: post.price || '',
+      buttonLabel: post.buttonLabel || '',
+      buttonUrl: post.buttonUrl || ''
     });
   };
 
@@ -187,13 +196,17 @@ const AdminDashboard = ({ onLogout }) => {
   const handleUpdateSettings = async (e) => {
     e.preventDefault();
     try {
-      await fetch(`${import.meta.env.VITE_API_URL}/api/settings`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/settings`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(settings)
       });
-      alert('Global web settings updated successfully!');
-    } catch (e) { console.error(e); }
+      if (res.ok) {
+        alert('Global web settings updated successfully!');
+      } else {
+        alert('Failed to save settings. Server returned an error.');
+      }
+    } catch (e) { console.error(e); alert('Network error: Could not connect to server.'); }
   };
 
   // Drag and drop handlers
@@ -223,7 +236,7 @@ const AdminDashboard = ({ onLogout }) => {
     const val = e.target.value;
     if (val === 'NEW_MAIN_OPTION') {
       setUseCustomMainCat(true);
-      setCustomMainMainCat('');
+      setCustomMainCat('');
       setUseCustomSubCat(true);
       setCustomSubCat('');
     } else {
@@ -554,7 +567,7 @@ const AdminDashboard = ({ onLogout }) => {
                       </select>
                     ) : (
                       <div style={{ display: 'flex', gap: '0.5rem' }}>
-                         <input type="text" className="form-control" value={customMainCat} onChange={e => setCustomMainMainCat(e.target.value)} placeholder="Type new Main Category..." required style={{ flex: 1 }} />
+                         <input type="text" className="form-control" value={customMainCat} onChange={e => setCustomMainCat(e.target.value)} placeholder="Type new Main Category..." required style={{ flex: 1 }} />
                          <button type="button" onClick={() => setUseCustomMainCat(false)} className="btn btn-secondary">Back</button>
                       </div>
                     )}
@@ -564,13 +577,23 @@ const AdminDashboard = ({ onLogout }) => {
                     <label className="form-label">Sub-Category Navigation Button</label>
                     {!useCustomSubCat ? (
                       <select className="form-control" value={newPost.subCategory} onChange={handleSubCategorySelect} required>
+                        <option value="">-- Select or add a sub-category --</option>
                         {existingSubCats.map(sub => <option key={sub} value={sub}>{sub}</option>)}
-                        <option value="NEW_SUB_OPTION" style={{ color: 'var(--primary)', fontWeight: 'bold' }}>✨ Add NEW Button Option...</option>
+                        <option value="NEW_SUB_OPTION" style={{ color: 'var(--primary)', fontWeight: 'bold' }}>✨ Add NEW Sub-Category...</option>
                       </select>
                     ) : (
-                      <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <input type="text" className="form-control" value={customSubCat} onChange={e => setCustomSubCat(e.target.value)} placeholder="Type new Button Name..." required style={{ flex: 1 }} />
-                        {existingSubCats.length > 0 && <button type="button" onClick={() => setUseCustomSubCat(false)} className="btn btn-secondary">Back</button>}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <input type="text" className="form-control" value={customSubCat} onChange={e => setCustomSubCat(e.target.value)} placeholder="Type new Sub-Category name..." required style={{ flex: 1 }} />
+                          <button type="button" onClick={() => { setUseCustomSubCat(false); setCustomSubCat(''); }} className="btn btn-secondary">Cancel</button>
+                        </div>
+                        {existingSubCats.length > 0 && (
+                          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>
+                            Or pick existing: {existingSubCats.map(sub => (
+                              <button key={sub} type="button" onClick={() => { setUseCustomSubCat(false); setNewPost(prev => ({ ...prev, subCategory: sub })); }} style={{ marginLeft: '0.4rem', padding: '0.1rem 0.5rem', fontSize: '0.8rem', background: 'rgba(6,182,212,0.1)', color: 'var(--primary)', border: '1px solid var(--primary)', borderRadius: '4px', cursor: 'pointer' }}>{sub}</button>
+                            ))}
+                          </p>
+                        )}
                       </div>
                     )}
                   </div>
@@ -625,6 +648,58 @@ const AdminDashboard = ({ onLogout }) => {
                   <div className="form-group">
                     <label className="form-label">Detailed Information</label>
                     <textarea className="form-control" rows="4" value={newPost.content} onChange={e => setNewPost({ ...newPost, content: e.target.value })} required></textarea>
+                  </div>
+
+                  {/* Optional CTA Button */}
+                  <div className="form-group" style={{ background: 'rgba(6,182,212,0.05)', border: '1px dashed var(--glass-border)', borderRadius: '10px', padding: '1.2rem' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', cursor: 'pointer', marginBottom: showButtonFields ? '1.2rem' : 0 }}>
+                      <input
+                        type="checkbox"
+                        checked={showButtonFields}
+                        onChange={e => {
+                          setShowButtonFields(e.target.checked);
+                          if (!e.target.checked) setNewPost(prev => ({ ...prev, buttonLabel: '', buttonUrl: '' }));
+                        }}
+                        style={{ width: '18px', height: '18px', accentColor: 'var(--primary)', cursor: 'pointer' }}
+                      />
+                      <span style={{ fontWeight: 600, color: 'var(--text)' }}>✨ Add an Optional Action Button (CTA)</span>
+                      {!showButtonFields && <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>— e.g. "Order Now", "WhatsApp Us"</span>}
+                    </label>
+
+                    {showButtonFields && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '0.8rem' }}>
+                          <div className="form-group" style={{ marginBottom: 0 }}>
+                            <label className="form-label" style={{ fontSize: '0.85rem' }}>Button Label</label>
+                            <input
+                              type="text"
+                              className="form-control"
+                              value={newPost.buttonLabel}
+                              onChange={e => setNewPost({ ...newPost, buttonLabel: e.target.value })}
+                              placeholder="e.g. Order Now"
+                            />
+                          </div>
+                          <div className="form-group" style={{ marginBottom: 0 }}>
+                            <label className="form-label" style={{ fontSize: '0.85rem' }}>Button Link (URL)</label>
+                            <input
+                              type="url"
+                              className="form-control"
+                              value={newPost.buttonUrl}
+                              onChange={e => setNewPost({ ...newPost, buttonUrl: e.target.value })}
+                              placeholder="https://wa.me/1234567890"
+                            />
+                          </div>
+                        </div>
+                        {newPost.buttonLabel && (
+                          <div>
+                            <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '0.4rem' }}>Preview:</p>
+                            <span style={{ display: 'inline-block', padding: '0.5rem 1.2rem', background: 'linear-gradient(45deg, var(--primary), var(--accent))', color: '#fff', borderRadius: '8px', fontWeight: 600, fontSize: '0.9rem' }}>
+                              {newPost.buttonLabel}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   <button type="submit" disabled={uploading} className="btn btn-primary" style={{ width: '100%', background: editingPostId ? 'var(--accent)' : '', opacity: uploading ? 0.7 : 1 }}>

@@ -203,6 +203,35 @@ const ServiceDetails = () => {
                           </div>
                        </div>
 
+                       {/* Optional Custom CTA Button */}
+                       {post.buttonLabel && post.buttonUrl && (
+                         <div style={{ marginBottom: '1.5rem' }}>
+                           <a
+                             href={post.buttonUrl}
+                             target="_blank"
+                             rel="noopener noreferrer"
+                             style={{
+                               display: 'inline-flex',
+                               alignItems: 'center',
+                               gap: '0.5rem',
+                               padding: '0.7rem 1.8rem',
+                               background: 'linear-gradient(45deg, var(--primary), var(--accent))',
+                               color: '#fff',
+                               borderRadius: '10px',
+                               fontWeight: 700,
+                               fontSize: '1rem',
+                               textDecoration: 'none',
+                               boxShadow: '0 4px 15px rgba(6,182,212,0.3)',
+                               transition: 'transform 0.2s, box-shadow 0.2s'
+                             }}
+                             onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 25px rgba(6,182,212,0.45)'; }}
+                             onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(6,182,212,0.3)'; }}
+                           >
+                             {post.buttonLabel} →
+                           </a>
+                         </div>
+                       )}
+
                        <div style={{ marginTop: '0.5rem' }}>
                           <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.1rem', marginBottom: '1rem', color: 'var(--text)' }}>
                             <MessageCircle size={18} color="var(--primary)" /> {t('details_feedback_title')}
