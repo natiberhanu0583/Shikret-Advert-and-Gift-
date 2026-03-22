@@ -7,7 +7,17 @@ const Navbar = () => {
   const { language, setLanguage, t } = useLanguage();
 
   return (
-    <nav className="glass-panel" style={{ position: 'fixed', top: '1rem', left: '2rem', right: '2rem', zIndex: 1000, padding: '0.8rem 2rem' }}>
+    <nav className="glass-panel" style={{ 
+      position: 'fixed', 
+      top: 'env(safe-area-inset-top, 0)', 
+      marginTop: '1rem',
+      left: '1rem', 
+      right: '1rem', 
+      zIndex: 1000, 
+      padding: '0.8rem 1.5rem',
+      maxWidth: 'calc(100% - 2rem)',
+      margin: '0 auto'
+    }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <a href="/" style={{ textDecoration: 'none', color: 'inherit' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
