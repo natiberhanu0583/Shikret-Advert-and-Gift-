@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Heart, MessageCircle, Send } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import LoginModal from '../components/LoginModal';
 import InstantOrderModal from '../components/InstantOrderModal';
 
 const ServiceDetails = () => {
+  const { t } = useLanguage();
   const { categoryId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
@@ -151,7 +153,7 @@ const ServiceDetails = () => {
         >
            <img src={lightboxImage} alt="Fullscreen View" style={{ maxWidth: '95vw', maxHeight: '95vh', objectFit: 'contain', borderRadius: '8px', boxShadow: '0 0 30px rgba(0,0,0,0.8)' }} />
            <div style={{ position: 'absolute', top: '2rem', right: '3rem', color: 'white', background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.2)', padding: '0.5rem 1rem', borderRadius: '30px', fontSize: '0.9rem', pointerEvents: 'none' }}>
-             Click anywhere to close
+             {t('services_click_hint')}
            </div>
         </div>
       )}
@@ -160,16 +162,16 @@ const ServiceDetails = () => {
       
       <main style={{ flex: 1, paddingTop: '8rem', paddingBottom: '4rem', background: 'var(--bg)' }} className="container">
         <button onClick={() => navigate('/')} className="btn" style={{ background: 'transparent', color: 'var(--text-muted)', padding: 0, marginBottom: '2rem' }}>
-          <ArrowLeft size={20} /> Back to Home
+          <ArrowLeft size={20} /> {t('details_back')}
         </button>
 
-        <h1 className="heading-gradient" style={{ fontSize: '3rem', marginBottom: '1rem' }}>{decodedCategory}</h1>
+        <h1 className="heading-gradient" style={{ fontSize: '3rem', marginBottom: '1rem' }}>{t(decodedCategory)}</h1>
         <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem', marginBottom: '3rem', maxWidth: '600px' }}>
-          Explore our featured items and services. Leave a like or a private message to the office if you have specific questions!
+          {t('details_subtitle')}
         </p>
 
         {loading ? (
-           <p style={{ color: 'var(--text-muted)' }}>Loading services...</p>
+           <p style={{ color: 'var(--text-muted)' }}>{t('details_loading')}</p>
         ) : (
           <>
             {subCategories.length > 0 && (
@@ -186,7 +188,7 @@ const ServiceDetails = () => {
 
             {displayedPosts.length === 0 ? (
               <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center' }}>
-                 <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem' }}>No specific details added for this service yet.</p>
+                 <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem' }}>{t('details_empty')}</p>
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
@@ -231,13 +233,13 @@ const ServiceDetails = () => {
                              <button onClick={() => {
                                 requireAuth(() => setInstantOrderItem({ item: post, type: 'voice' }));
                              }} className="btn btn-primary" style={{ padding: '0.6rem 1.5rem', background: 'linear-gradient(45deg, #06b6d4, #3b82f6)', boxShadow: '0 4px 15px rgba(6, 182, 212, 0.4)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                               🎤 Order via Voice Message
+                               🎤 {t('details_voice_order')}
                              </button>
                              
                              <button onClick={() => {
                                 requireAuth(() => setInstantOrderItem({ item: post, type: 'text' }));
                              }} className="btn btn-secondary" style={{ padding: '0.6rem 1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', border: '1px solid var(--glass-border)' }}>
-                               📝 Order via Text Details
+                               📝 {t('details_text_order')}
                              </button>
                           </div>
                        </div>

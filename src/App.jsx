@@ -33,7 +33,6 @@ const Website = () => {
     <div style={{ position: 'relative' }}>
       <Navbar />
       <Hero />
-      <Services />
       <OrderForm />
       <Footer />
     </div>
@@ -41,16 +40,19 @@ const Website = () => {
 };
 
 import ServiceDetails from './pages/ServiceDetails'; // Import Details Page
+import { LanguageProvider } from './context/LanguageContext';
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Website />} />
-        <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/services/:categoryId" element={<ServiceDetails />} />
-      </Routes>
-    </Router>
+    <LanguageProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<Website />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/services/:categoryId" element={<ServiceDetails />} />
+        </Routes>
+      </Router>
+    </LanguageProvider>
   );
 }
 

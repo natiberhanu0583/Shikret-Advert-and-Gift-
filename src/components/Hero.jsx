@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, Sparkles, Printer, Megaphone, MonitorSmartphone, Gift } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 const Hero = () => {
+  const { t } = useLanguage();
   const [settings, setSettings] = useState({
     heroTitle: 'Brand Identity',
     heroSubtitle: 'Shikret offers premium printing, cutting-edge advertising, state-of-the-art web development, and personalized gift making services designed to make your business shine.'
@@ -22,52 +24,72 @@ const Hero = () => {
     fetchSettings();
   }, []);
 
+  const categories = [
+    { id: 'Printing Services', icon: Printer, label: 'Printing Services' },
+    { id: 'Advertising', icon: Megaphone, label: 'Advertising' },
+    { id: 'Web & App Development', icon: MonitorSmartphone, label: 'Web & App Development' },
+    { id: 'Gift Equipment Making', icon: Gift, label: 'Gift Equipment Making' }
+  ];
+
   return (
-    <section id="home" style={{ paddingTop: '8rem', paddingBottom: '4rem', minHeight: '100vh', display: 'flex', alignItems: 'center' }} className="container">
-      <div style={{ display: 'grid', gap: '4rem', alignItems: 'center' }} className="grid-cols-2">
-        <div className="animate-fade-in">
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '6px 12px', background: 'var(--glass-bg)', borderRadius: '20px', border: '1px solid var(--glass-border)', color: 'var(--primary)', fontWeight: 600, fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-            <Sparkles size={16} /> Premium Printing & Advertising
-          </div>
-          <h1 style={{ fontSize: '4rem', marginBottom: '1.5rem', lineHeight: 1.1 }}>
-            Elevate Your <br /> 
-            <span className="heading-gradient">{settings.heroTitle}</span>
-          </h1>
-          <p style={{ fontSize: '1.25rem', color: 'var(--text-muted)', marginBottom: '2.5rem', maxWidth: '500px' }}>
-            {settings.heroSubtitle}
-          </p>
-          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-            <a href="#order" className="btn btn-primary">
-              Start Your Order <ArrowRight size={20} />
-            </a>
-            <a href="#services" className="btn btn-secondary">
-              Explore Services
-            </a>
-          </div>
+    <section id="home" style={{ paddingTop: '8rem', paddingBottom: '6rem', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', position: 'relative' }} className="container">
+      
+      {/* Centered Modern Category Selector (The "Top Capabilities" buttons) */}
+      <div className="animate-fade-in capability-grid" style={{ width: '100%', maxWidth: '900px', marginBottom: '4rem' }}>
+        {categories.map((cat, idx) => (
+          <a 
+            key={idx}
+            href={`/services/${encodeURIComponent(cat.id)}`} 
+            className="glass-panel" 
+            style={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              alignItems: 'center', 
+              gap: '0.8rem', 
+              padding: '1.5rem 1rem', 
+              textDecoration: 'none', 
+              transition: '0.3s',
+              border: '1px solid var(--glass-border)',
+              minWidth: '150px'
+            }}
+          >
+            <div style={{ width: '50px', height: '50px', borderRadius: '15px', background: 'rgba(6, 182, 212, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: '0.3s' }}>
+              <cat.icon size={26} color="var(--primary)" />
+            </div>
+            <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text)' }}>
+              {t(cat.label)}
+            </span>
+          </a>
+        ))}
+      </div>
+
+      <div className="animate-fade-in" style={{ maxWidth: '850px' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '6px 14px', background: 'rgba(6, 182, 212, 0.1)', borderRadius: '30px', border: '1px solid rgba(6, 182, 212, 0.2)', color: 'var(--primary)', fontWeight: 600, fontSize: '0.9rem', marginBottom: '2rem' }}>
+          <Sparkles size={16} /> {t('hero_badge')}
         </div>
         
-        <div className="animate-fade-in stagger-2" style={{ position: 'relative' }}>
-          {/* Abstract glowing background element */}
-          <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '400px', height: '400px', background: 'radial-gradient(circle, var(--primary) 0%, rgba(6, 182, 212, 0) 70%)', filter: 'blur(60px)', opacity: 0.3, zIndex: -1 }}></div>
-          
-          <div className="glass-panel" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            <img 
-              src="https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=2670&auto=format&fit=crop" 
-              alt="Studio Experience" 
-              style={{ width: '100%', borderRadius: '12px', objectFit: 'cover', height: '240px' }} 
-            />
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <h4 style={{ fontSize: '1.25rem' }}>Creative Studio</h4>
-                <p style={{ color: 'var(--text-muted)' }}>Printing & Full Stack Digital</p>
-              </div>
-              <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--accent), var(--secondary))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
-                10yr+
-              </div>
-            </div>
-          </div>
+        <h1 style={{ fontSize: 'clamp(2.5rem, 8vw, 4.8rem)', marginBottom: '1.5rem', lineHeight: 1.05, fontWeight: 800 }}>
+          {t('hero_elevate')} <br /> 
+          <span className="heading-gradient" style={{ display: 'block', marginTop: '0.5rem' }}>{settings.heroTitle}</span>
+        </h1>
+        
+        <p style={{ fontSize: 'clamp(1rem, 4vw, 1.35rem)', color: 'var(--text-muted)', marginBottom: '3.5rem', maxWidth: '600px', margin: '0 auto 3.5rem auto', lineHeight: 1.6 }}>
+          {settings.heroSubtitle}
+        </p>
+        
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
+          <a href="#order" className="btn btn-primary" style={{ padding: '1.1rem 2.8rem', fontSize: '1.1rem', borderRadius: '40px', boxShadow: '0 8px 30px rgba(6, 182, 212, 0.3)' }}>
+            {t('hero_btn_start')} <ArrowRight size={20} />
+          </a>
+          <a href="#services" className="btn btn-secondary" style={{ padding: '1.1rem 2.8rem', fontSize: '1.1rem', borderRadius: '40px', border: '1px solid var(--glass-border)', background: 'transparent' }}>
+            {t('hero_btn_explore')}
+          </a>
         </div>
       </div>
+
+      {/* Modern Gradient Background Decor */}
+      <div style={{ position: 'absolute', top: '20%', left: '50%', transform: 'translateX(-50%)', width: '80vw', height: '60vh', background: 'radial-gradient(circle at 50% 50%, rgba(6, 182, 212, 0.12) 0%, transparent 60%)', zIndex: -1, pointerEvents: 'none' }}></div>
+      
     </section>
   );
 };

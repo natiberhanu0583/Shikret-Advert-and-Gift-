@@ -16,10 +16,14 @@ const API_URL = process.env.API_URL || `http://localhost:${PORT}`;
 app.use(cors());
 app.use(express.json());
 
-// Set up Multer for local disk storage
+// Serving the frontend's build folder (dist) ensures full integration
+const frontendDist = path.join(__dirname, '../dist');
+app.use(express.static(frontendDist));
+
+// Serve uploaded files statically
 const uploadDir = path.join(__dirname, 'uploads');
-// Create directory asynchronously in background
 fs.mkdir(uploadDir, { recursive: true }).catch(console.error);
+app.use('/uploads', express.static(uploadDir));
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -251,6 +255,7 @@ app.put('/api/orders/:id/paid', async (req, res) => {
 app.put('/api/orders/:id/status', async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
+    console.log(`🟢 INCOMING API CALL: Status Update for ID ${id} -> ${status}`);
     try {
         const db = await readDB();
         const orderIndex = db.orders.findIndex(o => o.id === id);
@@ -509,6 +514,17 @@ async function pollTelegramUpdates() {
     // Continues polling every 10 seconds to avoid flooding
     setTimeout(pollTelegramUpdates, 10000);
 }
+
+// SPA Catch-all: If the request is NOT for an API or an image, serve the React APP
+app.get('*', (req, res) => {
+    // Only serve index.html for non-API, non-Uploads, non-Static-File-looking requests
+    if (req.path.startsWith('/api/') || req.path.startsWith('/uploads/')) {
+        return res.status(404).json({ error: 'Resource not found' });
+    }
+    // Serve index.html from dist
+    const indexPath = path.join(__dirname, '../dist', 'index.html');
+    res.sendFile(indexPath);
+});
 
 // Initialize DB then start server
 initializeDB().then(() => {

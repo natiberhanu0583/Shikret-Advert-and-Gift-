@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Printer, Megaphone, MonitorSmartphone, Gift, ArrowRight } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 const ServiceCard = ({ icon: Icon, title, id, dynamicPosts, onExploreClick }) => {
+  const { t } = useLanguage();
   // Extract unique subcategories from the dynamic posts for this specific column
   const subCategories = [...new Set(dynamicPosts.map(p => p.subCategory).filter(Boolean))];
 
@@ -24,11 +26,11 @@ const ServiceCard = ({ icon: Icon, title, id, dynamicPosts, onExploreClick }) =>
         
         {dynamicPosts.length > 0 && (
           <button onClick={(e) => { e.stopPropagation(); onExploreClick(id); }} className="btn btn-secondary" style={{ padding: '0.5rem 1rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-            Explore <ArrowRight size={14} />
+            {t('services_explore')} <ArrowRight size={14} />
           </button>
         )}
       </div>
-      <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{title}</h3>
+      <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{t(title)}</h3>
       
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', flex: 1 }}>
         
@@ -47,7 +49,7 @@ const ServiceCard = ({ icon: Icon, title, id, dynamicPosts, onExploreClick }) =>
             ))}
           </div>
         ) : (
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>No dynamic services added yet. Add via Admin panel.</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>{t('services_no_items')}</p>
         )}
 
       </div>
@@ -55,7 +57,7 @@ const ServiceCard = ({ icon: Icon, title, id, dynamicPosts, onExploreClick }) =>
       {/* Visual cue that the whole card is clickable */}
       <div style={{ marginTop: 'auto', paddingTop: '1.5rem', borderTop: '1px solid var(--glass-border)' }}>
         <p style={{ color: 'var(--primary)', fontSize: '0.9rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-           Click card to view all details <ArrowRight size={16} />
+           {t('services_click_hint')} <ArrowRight size={16} />
         </p>
       </div>
     </div>
@@ -63,6 +65,7 @@ const ServiceCard = ({ icon: Icon, title, id, dynamicPosts, onExploreClick }) =>
 }
 
 const Services = () => {
+  const { t } = useLanguage();
   const [posts, setPosts] = useState([]);
   const navigate = useNavigate();
 
@@ -96,9 +99,9 @@ const Services = () => {
     <section id="services" style={{ padding: '6rem 0', background: 'var(--bg-surface)' }}>
       <div className="container">
         <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-          <h2 style={{ fontSize: '3rem', marginBottom: '1rem' }} className="heading-gradient">Our Capabilities</h2>
+          <h2 style={{ fontSize: '3rem', marginBottom: '1rem' }} className="heading-gradient">{t('services_title')}</h2>
           <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem', maxWidth: '600px', margin: '0 auto' }}>
-            We provide an end-to-end solution for all your printing, digital, and promotional needs.
+            {t('services_subtitle')}
           </p>
         </div>
 

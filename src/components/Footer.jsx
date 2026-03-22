@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 
 const Footer = () => {
+  const { t } = useLanguage();
   const [settings, setSettings] = useState({
     phone: '+1 (555) 123-4567',
     email: 'info@shikret.com',
@@ -27,11 +29,11 @@ const Footer = () => {
           <div>
             <h3 className="heading-gradient" style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>SHIKRET</h3>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', maxWidth: '250px' }}>
-              Your one-stop destination for premium printing, impactful advertising, custom web development, and memorable gift making.
+              {t('footer_tagline')}
             </p>
           </div>
           <div>
-            <h4 style={{ marginBottom: '1.2rem', color: 'var(--text)' }}>Services</h4>
+            <h4 style={{ marginBottom: '1.2rem', color: 'var(--text)' }}>{t('nav_services')}</h4>
             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.8rem', color: 'var(--text-muted)' }}>
               <li><a href="#services" style={{ color: 'inherit', textDecoration: 'none' }}>Printing Services</a></li>
               <li><a href="#services" style={{ color: 'inherit', textDecoration: 'none' }}>Advertising Agency</a></li>
@@ -63,7 +65,7 @@ const Footer = () => {
           </div>
         </div>
         <div style={{ paddingTop: '2rem', borderTop: '1px solid var(--glass-border)', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-          <div>&copy; {new Date().getFullYear()} Shikret Printing & Advertising. All rights reserved.</div>
+          <div>&copy; {new Date().getFullYear()} SHIKRET. {t('footer_rights')}</div>
           <a href="/admin" style={{ color: 'var(--text-muted)', textDecoration: 'none', background: 'rgba(255,255,255,0.05)', padding: '0.4rem 1rem', borderRadius: '30px', fontSize: '0.8rem', border: '1px solid var(--glass-border)', transition: '0.3s' }} onMouseEnter={(e) => {e.target.style.background='rgba(255,255,255,0.1)'; e.target.style.color='#fff'}} onMouseLeave={(e) => {e.target.style.background='rgba(255,255,255,0.05)'; e.target.style.color='var(--text-muted)'}}>
             Admin Portal Access
           </a>

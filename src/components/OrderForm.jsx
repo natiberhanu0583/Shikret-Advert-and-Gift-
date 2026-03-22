@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 
 const OrderForm = () => {
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -65,9 +67,9 @@ const OrderForm = () => {
     <section id="order" style={{ padding: '6rem 0', background: 'var(--bg)', position: 'relative' }}>
       <div className="container grid-cols-2" style={{ display: 'grid', gap: '4rem', alignItems: 'flex-start' }}>
         <div className="animate-fade-in stagger-1">
-          <h2 style={{ fontSize: '3rem', marginBottom: '1rem', lineHeight: 1.2 }} className="heading-gradient">Ready to Work Together?</h2>
+          <h2 style={{ fontSize: '3rem', marginBottom: '1rem', lineHeight: 1.2 }} className="heading-gradient">{t('order_title')}</h2>
           <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem', marginBottom: '2rem' }}>
-            Fill out the form to request a quote or start a new order. Our team will get back to you within 24 hours.
+            {t('order_subtitle')}
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginTop: '2rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -121,39 +123,39 @@ const OrderForm = () => {
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label">First Name</label>
-              <input type="text" className="form-control" value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value})} placeholder="John" required />
+              <label className="form-label">{t('order_first_name')}</label>
+              <input type="text" className="form-control" value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value})} placeholder={t('order_placeholder_fname')} required />
             </div>
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label">Last Name</label>
-              <input type="text" className="form-control" value={formData.lastName} onChange={e => setFormData({...formData, lastName: e.target.value})} placeholder="Doe" required />
+              <label className="form-label">{t('order_last_name')}</label>
+              <input type="text" className="form-control" value={formData.lastName} onChange={e => setFormData({...formData, lastName: e.target.value})} placeholder={t('order_placeholder_lname')} required />
             </div>
           </div>
 
           <div className="form-group">
-            <label className="form-label">Email Address</label>
-            <input type="email" className="form-control" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} placeholder="john@example.com" required />
+            <label className="form-label">{t('order_email')}</label>
+            <input type="email" className="form-control" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} placeholder={t('order_placeholder_email')} required />
           </div>
 
           <div className="form-group">
-            <label className="form-label">Service Required</label>
+            <label className="form-label">{t('order_service')}</label>
             <select className="form-control" value={formData.service} onChange={e => setFormData({...formData, service: e.target.value})} style={{ WebkitAppearance: 'none', appearance: 'none' }} required>
-              <option value="" disabled>Select a Service</option>
-              <option value="Printing">Printing (Student, Office, Personal)</option>
-              <option value="Advertising">Advertising & Branding</option>
-              <option value="Web Development">Web & App Development</option>
-              <option value="Gift Making">Gift Equipment Making</option>
-              <option value="Other">Multiple / Other</option>
+              <option value="" disabled>{t('opt_select')}</option>
+              <option value="Printing">{t('opt_printing')}</option>
+              <option value="Advertising">{t('opt_advertising')}</option>
+              <option value="Web Development">{t('opt_web')}</option>
+              <option value="Gift Making">{t('opt_gift')}</option>
+              <option value="Other">{t('opt_other')}</option>
             </select>
           </div>
 
           <div className="form-group">
-            <label className="form-label">Message Details</label>
-            <textarea className="form-control" rows={5} value={formData.details} onChange={e => setFormData({...formData, details: e.target.value})} placeholder="Tell us more about your project goals..." required></textarea>
+            <label className="form-label">{t('order_details')}</label>
+            <textarea className="form-control" rows={5} value={formData.details} onChange={e => setFormData({...formData, details: e.target.value})} placeholder={t('order_placeholder_details')} required></textarea>
           </div>
 
           <button type="submit" disabled={status === 'submitting'} className="btn btn-primary" style={{ width: '100%', padding: '1rem', marginTop: '1rem', fontSize: '1.1rem', opacity: status === 'submitting' ? 0.7 : 1 }}>
-            {status === 'submitting' ? 'Submitting...' : 'Submit Order Request'}
+            {status === 'submitting' ? 'Submitting...' : t('order_submit')}
           </button>
         </form>
       </div>
