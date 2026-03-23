@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { ArrowLeft, Heart, MessageCircle, Send } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import API_BASE_URL from '../api_config';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import LoginModal from '../components/LoginModal';
@@ -30,7 +31,7 @@ const ServiceDetails = () => {
 
   const fetchServices = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/posts`);
+      const res = await fetch(`${API_BASE_URL}/api/posts`);
       if (res.ok) {
         const allPosts = await res.json();
         setPosts(allPosts.filter(p => p.category === decodedCategory));
@@ -67,7 +68,7 @@ const ServiceDetails = () => {
     requireAuth(async (user) => {
       try {
         setPosts(posts.map(p => p.id === postId ? { ...p, likes: (p.likes || 0) + 1 } : p));
-        await fetch(`${import.meta.env.VITE_API_URL}/api/posts/${postId}/like`, { 
+        await fetch(`${API_BASE_URL}/api/posts/${postId}/like`, { 
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ user })
@@ -87,7 +88,7 @@ const ServiceDetails = () => {
     requireAuth(async (user) => {
       try {
         setCommentStatus({ ...commentStatus, [postId]: 'sending' });
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/posts/${postId}/comment`, {
+        const res = await fetch(`${API_BASE_URL}/api/posts/${postId}/comment`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ text, user })

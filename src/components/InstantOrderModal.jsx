@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Mic, Square, Send, X, CheckCircle, AlertCircle, FileText } from 'lucide-react';
+import API_BASE_URL from '../api_config';
 
 const InstantOrderModal = ({ isOpen, request, user, onClose }) => {
   if (!isOpen || !request || !request.item) return null;
@@ -113,7 +114,7 @@ const InstantOrderModal = ({ isOpen, request, user, onClose }) => {
         const formData = new FormData();
         formData.append('audio', audioBlob, 'voice-message.webm');
         
-        const uploadRes = await fetch(`${import.meta.env.VITE_API_URL}/api/upload-audio`, {
+        const uploadRes = await fetch(`${API_BASE_URL}/api/upload-audio`, {
           method: 'POST',
           body: formData
         });
@@ -129,7 +130,7 @@ const InstantOrderModal = ({ isOpen, request, user, onClose }) => {
           setIsUploadingScreenshot(true);
           const formData = new FormData();
           formData.append('image', screenshotFile);
-          const uploadRes = await fetch(`${import.meta.env.VITE_API_URL}/api/upload`, {
+          const uploadRes = await fetch(`${API_BASE_URL}/api/upload`, {
               method: 'POST',
               body: formData
           });
@@ -153,7 +154,7 @@ const InstantOrderModal = ({ isOpen, request, user, onClose }) => {
         screenshotUrl: screenshotUrl
       };
 
-      const orderRes = await fetch(`${import.meta.env.VITE_API_URL}/api/orders`, {
+      const orderRes = await fetch(`${API_BASE_URL}/api/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orderPayload)

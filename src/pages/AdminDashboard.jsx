@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Package, FileText, Settings as ConfigIcon, LogOut, CheckCircle, Trash2, Edit, UploadCloud, MessageCircle, Heart, Download } from 'lucide-react';
+import API_BASE_URL from '../api_config';
 
 const AdminDashboard = ({ onLogout }) => {
   const [activeTab, setActiveTab] = useState('orders');
@@ -42,21 +43,21 @@ const AdminDashboard = ({ onLogout }) => {
 
   const fetchOrders = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/orders`, { cache: 'no-store' });
+      const res = await fetch(`${API_BASE_URL}/api/orders`, { cache: 'no-store' });
       if (res.ok) setOrders(await res.json());
     } catch (e) { console.error('Error fetching orders:', e); }
   };
 
   const fetchPosts = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/posts`);
+      const res = await fetch(`${API_BASE_URL}/api/posts`);
       if (res.ok) setPosts(await res.json());
     } catch (e) { console.error('Error fetching posts:', e); }
   };
 
   const fetchSettings = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/settings`);
+      const res = await fetch(`${API_BASE_URL}/api/settings`);
       if (res.ok) {
         const data = await res.json();
         setSettings(prev => ({ ...prev, ...data }));
@@ -68,7 +69,7 @@ const AdminDashboard = ({ onLogout }) => {
   const handleOrderStatus = async (id, status) => {
     console.log(`🔵 CLIENT: Updating Order #${id} to ${status}...`);
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/orders/${id}/status`, {
+      const res = await fetch(`${API_BASE_URL}/api/orders/${id}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status })
@@ -85,7 +86,7 @@ const AdminDashboard = ({ onLogout }) => {
 
   const handleMarkAsPaid = async (id, paid) => {
     try {
-      await fetch(`${import.meta.env.VITE_API_URL}/api/orders/${id}/paid`, {
+      await fetch(`${API_BASE_URL}/api/orders/${id}/paid`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ paid })
@@ -107,7 +108,7 @@ const AdminDashboard = ({ onLogout }) => {
         if (uploadFile) {
           const formData = new FormData();
           formData.append('image', uploadFile);
-          const uploadRes = await fetch(`${import.meta.env.VITE_API_URL}/api/upload`, { method: 'POST', body: formData });
+          const uploadRes = await fetch(`${API_BASE_URL}/api/upload`, { method: 'POST', body: formData });
           if (uploadRes.ok) {
             const uploadData = await uploadRes.json();
             finalImageUrl = uploadData.url;
@@ -123,11 +124,11 @@ const AdminDashboard = ({ onLogout }) => {
 
         let response;
         if (editingPostId) {
-          response = await fetch(`${import.meta.env.VITE_API_URL}/api/posts/${editingPostId}`, {
+          response = await fetch(`${API_BASE_URL}/api/posts/${editingPostId}`, {
             method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
           });
         } else {
-          response = await fetch(`${import.meta.env.VITE_API_URL}/api/posts`, {
+          response = await fetch(`${API_BASE_URL}/api/posts`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
           });
         }
@@ -172,7 +173,7 @@ const AdminDashboard = ({ onLogout }) => {
   const handleDeletePost = async (id) => {
     if (!window.confirm("Are you sure you want to delete this service permanently?")) return;
     try {
-      await fetch(`${import.meta.env.VITE_API_URL}/api/posts/${id}`, { method: 'DELETE' });
+      await fetch(`${API_BASE_URL}/api/posts/${id}`, { method: 'DELETE' });
       fetchPosts();
     } catch (e) { console.error(e); }
   };
@@ -180,7 +181,7 @@ const AdminDashboard = ({ onLogout }) => {
   const handleDeleteOrder = async (id) => {
     if (!window.confirm("Are you sure you want to completely delete this order history?")) return;
     try {
-      await fetch(`${import.meta.env.VITE_API_URL}/api/orders/${id}`, { method: 'DELETE' });
+      await fetch(`${API_BASE_URL}/api/orders/${id}`, { method: 'DELETE' });
       fetchOrders();
     } catch (e) { console.error(e); }
   };
@@ -188,7 +189,7 @@ const AdminDashboard = ({ onLogout }) => {
   const handleDeleteComment = async (postId, commentId) => {
     if (!window.confirm("Delete this customer comment?")) return;
     try {
-      await fetch(`${import.meta.env.VITE_API_URL}/api/posts/${postId}/comment/${commentId}`, { method: 'DELETE' });
+      await fetch(`${API_BASE_URL}/api/posts/${postId}/comment/${commentId}`, { method: 'DELETE' });
       fetchPosts();
     } catch (e) { console.error(e); }
   }
@@ -196,7 +197,7 @@ const AdminDashboard = ({ onLogout }) => {
   const handleUpdateSettings = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/settings`, {
+      const res = await fetch(`${API_BASE_URL}/api/settings`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(settings)

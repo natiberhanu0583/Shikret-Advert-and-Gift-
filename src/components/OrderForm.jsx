@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
+import API_BASE_URL from '../api_config';
 
 const OrderForm = () => {
   const { t } = useLanguage();
@@ -21,7 +22,7 @@ const OrderForm = () => {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/settings`);
+        const res = await fetch(`${API_BASE_URL}/api/settings`);
         if (res.ok) {
            const data = await res.json();
            setSettings(prev => ({...prev, ...data}));
@@ -44,7 +45,7 @@ const OrderForm = () => {
     };
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/orders`, {
+      const res = await fetch(`${API_BASE_URL}/api/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

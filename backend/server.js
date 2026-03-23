@@ -44,14 +44,14 @@ app.post('/api/upload', upload.single('image'), (req, res) => {
     if (!req.file) {
         return res.status(400).json({ error: 'No file uploaded.' });
     }
-    res.json({ url: `${API_URL}/uploads/${req.file.filename}` });
+    res.json({ url: `/uploads/${req.file.filename}` });
 });
 
 app.post('/api/upload-audio', upload.single('audio'), (req, res) => {
     if (!req.file) {
         return res.status(400).json({ error: 'No audio uploaded.' });
     }
-    res.json({ url: `${API_URL}/uploads/${req.file.filename}` });
+    res.json({ url: `/uploads/${req.file.filename}` });
 });
 
 // JSON File Database setup

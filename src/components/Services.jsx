@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Printer, Megaphone, MonitorSmartphone, Gift, ArrowRight } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import API_BASE_URL from '../api_config';
 
 const ServiceCard = ({ icon: Icon, title, id, dynamicPosts, onExploreClick }) => {
   const { t } = useLanguage();
@@ -72,7 +73,7 @@ const Services = () => {
   useEffect(() => {
     const fetchServices = async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/posts`);
+        const res = await fetch(`${API_BASE_URL}/api/posts`);
         if (res.ok) setPosts(await res.json());
       } catch (err) {
         console.error('Error fetching services:', err);

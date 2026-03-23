@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ArrowRight, Sparkles, Printer, Megaphone, MonitorSmartphone, Gift, Star, Package } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { Link } from 'react-router-dom';
+import API_BASE_URL from '../api_config';
 
 // Icon map for known categories - new categories will get a default icon
 const ICON_MAP = {
@@ -22,7 +23,7 @@ const Hero = () => {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/settings`);
+        const res = await fetch(`${API_BASE_URL}/api/settings`);
         if (res.ok) {
            const data = await res.json();
            setSettings(prev => ({...prev, ...data}));
@@ -34,7 +35,7 @@ const Hero = () => {
 
     const fetchCategories = async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/posts`);
+        const res = await fetch(`${API_BASE_URL}/api/posts`);
         if (res.ok) {
           const posts = await res.json();
           // Get unique categories from actual posts + 4 static ones
